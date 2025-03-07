@@ -1,0 +1,43 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout of the repository
+        uses: actions/checkout@v3
+
+      - name: Installing .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setting up dependencies
+        run: dotnet restore
+
+      - name: Building
+        run: dotnet build --configuration Release --no-restore
+
+      # - name: Run tests (later, when tests are available)
+      #   run: dotnet test --no-restore --verbosity normal
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout of the repository
+        uses: actions/checkout@v3
+
+      - name: Launching Super Linter
+        uses: github/super-linter@v5
+        env:
+          VALIDATE_CSHARP: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
