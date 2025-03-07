@@ -7,7 +7,7 @@
         string Street,
         string HomeNumber,
         string City,
-        string? State,
+        string? Region,
         string? PostalCode,
         string Country,
         string Password,
