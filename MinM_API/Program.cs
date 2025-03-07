@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
 using MinM_API.Models;
+using MinM_API.Repositories.Implementations;
+using MinM_API.Repositories.Interfaces;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
 
@@ -37,6 +39,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
