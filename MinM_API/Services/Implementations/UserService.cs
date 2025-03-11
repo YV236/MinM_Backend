@@ -151,9 +151,75 @@ namespace MinM_API.Services.Implementations
             return serviceResponse;
         }
 
-        public Task<ServiceResponse<GetUserDto>> UpdateUserInfo(ClaimsPrincipal user, UpdateUserDto userUpdateDto)
+        public async Task<ServiceResponse<GetUserDto>> UpdateUserInfo(ClaimsPrincipal user, UpdateUserDto userUpdateDto)
         {
-            throw new NotImplementedException();
+            var serviceResponse = new ServiceResponse<GetUserDto>();
+            var getUser = await userRepository.FindUser(user, context);
+
+            if (getUser == null)
+            {
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = "User not found.";
+                serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                return serviceResponse;
+            }
+
+            if (!userRepository.AreAllFieldsFilled(userUpdateDto))
+            {
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = "Error while updating. Some of the properties may be filled incorrectly.";
+                serviceResponse.StatusCode = HttpStatusCode.UnprocessableEntity;
+                return serviceResponse;
+            }
+
+            if (userUpdateDto.PhoneNumber.Any(c => !char.IsDigit(c)) || userUpdateDto.PhoneNumber.Length < 9)
+            {
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = $"Error while registering. " +
+                    $"Phone number '{userUpdateDto.PhoneNumber}' must contain numbers only and have at least 9 digits.";
+                serviceResponse.StatusCode = HttpStatusCode.UnprocessableEntity;
+                return serviceResponse;
+            }
+
+            getUser.UserFirstName = userUpdateDto.UserFirstName;
+            getUser.UserLastName = userUpdateDto.UserLastName;
+            getUser.PhoneNumber = userUpdateDto.PhoneNumber;
+
+            if (getUser.Address == null)
+            {
+                getUser.Address = new Models.Address();
+            }
+
+            getUser.Address.Street = userUpdateDto.Street;
+            getUser.Address.HomeNumber = userUpdateDto.HomeNumber;
+            getUser.Address.City = userUpdateDto.City;
+            getUser.Address.Region = userUpdateDto.Region;
+            getUser.Address.PostalCode = userUpdateDto.PostalCode;
+            getUser.Address.Country = userUpdateDto.Country;
+
+            context.Users.Update(getUser);
+
+            await context.SaveChangesAsync();
+
+            serviceResponse.Data = new GetUserDto()
+            {
+                UserFirstName = getUser.UserFirstName,
+                UserLastName = getUser.UserLastName,
+                Email = getUser.Email,
+                Address = new Dtos.Address()
+                {
+                    Street = getUser.Address!.Street,
+                    HomeNumber = getUser.Address!.HomeNumber,
+                    City = getUser.Address!.City,
+                    Region = getUser.Address!.Region,
+                    PostalCode = getUser.Address!.PostalCode,
+                    Country = getUser.Address!.Country,
+                },
+                PhoneNumber = getUser.PhoneNumber,
+            };
+            serviceResponse.IsSuccessful = true;
+            serviceResponse.Message = "The data successfully updated";
+            return serviceResponse;
         }
     }
 }
