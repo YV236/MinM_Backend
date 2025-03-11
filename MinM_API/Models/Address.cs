@@ -6,6 +6,7 @@
         public string UserId { get; set; }
         public virtual User User { get; set; } = null!;
         public string Street { get; set; } = string.Empty;
+        public string HomeNumber { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public string? Region { get; set; } = string.Empty;
         public string? PostalCode { get; set; } = string.Empty;

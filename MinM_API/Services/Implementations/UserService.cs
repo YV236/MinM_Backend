@@ -60,14 +60,15 @@ namespace MinM_API.Services.Implementations
                     UserName = userRegisterDto.Email,
                     PhoneNumber = userRegisterDto.PhoneNumber,
                     DateOfCreation = DateTime.Now,
-                    Address = new Address
+                    Address = new Models.Address
                     {
                         Id = Guid.NewGuid().ToString(),
                         Street = userRegisterDto.Street,
+                        HomeNumber = userRegisterDto.HomeNumber,
                         City = userRegisterDto.City,
                         Region = userRegisterDto.Region,
                         PostalCode = userRegisterDto.PostalCode,
-                        Country = userRegisterDto.Country
+                        Country = userRegisterDto.Country,
                     }
                 };
 
