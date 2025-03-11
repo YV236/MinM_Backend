@@ -19,5 +19,14 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpGet]
+        [Route("useInfo")]
+        public async Task<ActionResult<ServiceResponse<GetUserDto>>> GetUserInfo()
+        {
+            var response = await _userService.GetUserInfo(User);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }

@@ -11,14 +11,14 @@ using System.Security.Claims;
 
 namespace MinM_API.Services.Implementations
 {
-    public class UserService(IUserRepository registrationRepository,
+    public class UserService(IUserRepository userRepository,
         UserManager<User> userManager, DataContext context) : IUserService
     {
         public async Task<ServiceResponse<int>> Register(UserRegisterDto userRegisterDto)
         {
             var serviceResponse = new ServiceResponse<int>();
 
-            if (!registrationRepository.AreAllFieldsFilled(userRegisterDto))
+            if (!userRepository.AreAllFieldsFilled(userRegisterDto))
             {
                 serviceResponse.Data = 0;
                 serviceResponse.IsSuccessful = false;
@@ -28,7 +28,7 @@ namespace MinM_API.Services.Implementations
                 return serviceResponse;
             }
 
-            if (!registrationRepository.IsValidEmail(userRegisterDto.Email))
+            if (!userRepository.IsValidEmail(userRegisterDto.Email))
             {
                 serviceResponse.Data = 0;
                 serviceResponse.IsSuccessful = false;
@@ -102,9 +102,53 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public Task<ServiceResponse<GetUserDto>> GetUserInfo(ClaimsPrincipal user)
+        public async Task<ServiceResponse<GetUserDto>> GetUserInfo(ClaimsPrincipal user)
         {
-            throw new NotImplementedException();
+            var serviceResponse = new ServiceResponse<GetUserDto>();
+
+            try
+            {
+                var getUser = await userRepository.FindUser(user, context);
+
+                if (getUser == null)
+                {
+                    serviceResponse.Data = null;
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "Unable to find the user.";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+
+                    return serviceResponse;
+                }
+
+                var userDto = new GetUserDto()
+                {
+                    UserFirstName = getUser.UserFirstName,
+                    UserLastName = getUser.UserLastName,
+                    Email = getUser.Email,
+                    Address = new Dtos.Address()
+                    {
+                        Street = getUser.Address!.Street,
+                        HomeNumber= getUser.Address!.HomeNumber,
+                        City = getUser.Address!.City,
+                        Region = getUser.Address!.Region,
+                        PostalCode = getUser.Address!.PostalCode,
+                        Country = getUser.Address!.Country,
+                    },
+                    PhoneNumber = getUser.PhoneNumber,
+                };
+                serviceResponse.Data = userDto;
+                serviceResponse.IsSuccessful = true;
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Data = null;
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return serviceResponse;
+            }
+
+            return serviceResponse;
         }
 
         public Task<ServiceResponse<GetUserDto>> UpdateUserInfo(ClaimsPrincipal user, UpdateUserDto userUpdateDto)
