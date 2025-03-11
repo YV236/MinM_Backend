@@ -1,5 +1,5 @@
-﻿using MinM_API.Dtos.User;
-using MinM_API.Models;
+﻿using MinM_API.Dtos;
+using MinM_API.Dtos.User;
 using System.Security.Claims;
 
 namespace MinM_API.Services.Interfaces

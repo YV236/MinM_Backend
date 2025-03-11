@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
+using MinM_API.Dtos;
 using MinM_API.Dtos.User;
 using MinM_API.Models;
 using MinM_API.Repositories.Interfaces;

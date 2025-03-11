@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MinM_API.Dtos;
 using MinM_API.Dtos.User;
-using MinM_API.Models;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
 

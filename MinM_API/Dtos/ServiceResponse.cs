@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace MinM_API.Models
+namespace MinM_API.Dtos
 {
     public class ServiceResponse<T>
     {
