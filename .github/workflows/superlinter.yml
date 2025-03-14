@@ -30,3 +30,18 @@ jobs:
 
       - name: Building
         run: dotnet build --configuration Release --no-restore
+
+      # - name: Run tests (later, when tests are available)
+      #   run: dotnet test --no-restore --verbosity normal
+      
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout of the repository
+        uses: actions/checkout@v3
+
+      - name: Launching Super Linter
+        uses: github/super-linter@v5
+        env:
+          VALIDATE_CSHARP: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
