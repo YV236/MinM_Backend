@@ -186,10 +186,7 @@ namespace MinM_API.Services.Implementations
             getUser.UserLastName = userUpdateDto.UserLastName;
             getUser.PhoneNumber = userUpdateDto.PhoneNumber;
 
-            if (getUser.Address == null)
-            {
-                getUser.Address = new Models.Address();
-            }
+            getUser.Address ??= new Models.Address();
 
             getUser.Address.Street = userUpdateDto.Street;
             getUser.Address.HomeNumber = userUpdateDto.HomeNumber;

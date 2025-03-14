@@ -17,8 +17,8 @@
         public string CategoryId { get; set; }
         public virtual Category Category { get; set; } = null!;
         public string SKU { get; set; } = string.Empty; // Product article
-        public virtual List<string> ImageUrls { get; set; } = new(); // Product photo
+        public virtual List<string> ImageUrls { get; set; } = []; // Product photo
 
-        public virtual List<User> UsersWithThisProductInCart { get; set; } = new();
+        public virtual List<User> UsersWithThisProductInCart { get; set; } = [];
     }
 }

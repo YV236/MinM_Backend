@@ -28,9 +28,7 @@ namespace MinM_API.Repositories.Implementations
 
             foreach (var property in properties)
             {
-                var value = property.GetValue(user) as string;
-
-                if (value is null)
+                if (property.GetValue(user) is not string value)
                 {
                     continue;
                 }
@@ -43,7 +41,7 @@ namespace MinM_API.Repositories.Implementations
             return true;
         }
 
-        private string GetNameIdentifier(ClaimsPrincipal claimsPrincipal)
+        private static string GetNameIdentifier(ClaimsPrincipal claimsPrincipal)
         {
             return claimsPrincipal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
         }

@@ -4,13 +4,8 @@ using MinM_API.Models;
 
 namespace MinM_API.Data
 {
-    public class DataContext : IdentityDbContext<User>
+    public class DataContext(DbContextOptions<DataContext> options) : IdentityDbContext<User>(options)
     {
-        public DataContext(DbContextOptions<DataContext> options) : base(options)
-        {
-
-        }
-
         public DbSet<User> Users { get; set; }
 
         public DbSet<Address> Address { get; set; }
