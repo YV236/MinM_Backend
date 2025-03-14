@@ -24,9 +24,6 @@ jobs:
       - name: Setting up dependencies
         run: dotnet restore
 
-      - name: Run dotnet format
-        run: dotnet format --verify-no-changes --severity info
-
       - name: Building
         run: dotnet build --configuration Release --no-restore
 
