@@ -24,8 +24,9 @@ jobs:
       - name: Setting up dependencies
         run: dotnet restore
 
-      - name: Auto format the code
+      - name: Fix formatting issues
         run: dotnet format --severity info
+        continue-on-error: true
 
       - name: Building
         run: dotnet build --configuration Release --no-restore
