@@ -35,12 +35,11 @@ namespace MinM_API.Data
         {
             base.OnModelCreating(builder);
 
-            // Забороняємо видалення користувача (User)
             builder.Entity<User>()
                 .HasMany(u => u.History)
                 .WithOne(o => o.User)
                 .HasForeignKey(o => o.UserId)
-                .OnDelete(DeleteBehavior.NoAction); // Забороняємо каскадне видалення
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.Entity<User>()
                 .HasOne(u => u.Address)
@@ -69,7 +68,6 @@ namespace MinM_API.Data
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Налаштування зв'язків замовлень
             builder.Entity<Order>()
                 .HasOne(o => o.User)
                 .WithMany(u => u.History)

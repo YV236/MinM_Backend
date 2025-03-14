@@ -37,7 +37,7 @@ namespace MinM_API.Repositories.Implementations
 
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    return false; // Якщо поле містить лише пробіли або порожнє, повертаємо false
+                    return false;
                 }
             }
             return true;
