@@ -22,7 +22,7 @@ namespace MinM_API.Controllers
 
         [HttpGet]
         [Authorize]
-        [Route("useInfo")]
+        [Route("userInfo")]
         public async Task<ActionResult<ServiceResponse<GetUserDto>>> GetUserInfo()
         {
             var response = await _userService.GetUserInfo(User);
@@ -31,7 +31,7 @@ namespace MinM_API.Controllers
         }
 
         [HttpPut]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [Route("UpdateInfo")]
         public async Task<ActionResult<ServiceResponse<GetUserDto>>> UpdateInfo(UpdateUserDto updateUserDto)
         {

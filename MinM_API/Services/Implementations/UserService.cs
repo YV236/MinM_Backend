@@ -131,17 +131,17 @@ namespace MinM_API.Services.Implementations
                 var userDto = new GetUserDto()
                 {
                     UserName = getUser.UserName!,
-                    UserFirstName = getUser.UserFirstName,
-                    UserLastName = getUser.UserLastName,
+                    UserFirstName = getUser.UserFirstName ?? "",
+                    UserLastName = getUser.UserLastName ?? "",
                     Email = getUser.Email,
                     Address = new Dtos.Address()
                     {
-                        Street = getUser.Address!.Street,
-                        HomeNumber = getUser.Address!.HomeNumber,
-                        City = getUser.Address!.City,
-                        Region = getUser.Address!.Region,
-                        PostalCode = getUser.Address!.PostalCode,
-                        Country = getUser.Address!.Country,
+                        Street = getUser.Address?.Street ?? "",
+                        HomeNumber = getUser.Address?.HomeNumber ?? "",
+                        City = getUser.Address?.City ?? "",
+                        Region = getUser.Address?.Region ?? "",
+                        PostalCode = getUser.Address?.PostalCode ?? "",
+                        Country = getUser.Address?.Country ?? "",
                     },
                     PhoneNumber = getUser.PhoneNumber,
                 };
