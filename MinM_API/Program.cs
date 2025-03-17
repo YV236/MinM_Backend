@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
 using MinM_API.Models;
@@ -6,6 +7,7 @@ using MinM_API.Repositories.Implementations;
 using MinM_API.Repositories.Interfaces;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
+using MinM_API.Extension;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +50,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.ApplyMigration();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await AdminExtension.SeedRolesAsync(services);
+    await AdminExtension.SeedAdminAsync(services);
 }
 
 app.UseHttpsRedirection();
