@@ -74,7 +74,6 @@ namespace MinM_API.Services.Implementations
                 user.AddressId = user.Address.Id;
 
                 var result = await userManager.CreateAsync(user, userRegisterDto.Password);
-
                 if (!result.Succeeded)
                 {
                     serviceResponse.Data = 0;
@@ -82,6 +81,16 @@ namespace MinM_API.Services.Implementations
                     serviceResponse.Message = string.Join(", ", result.Errors.Select(e => e.Description));
                     serviceResponse.StatusCode = HttpStatusCode.BadRequest;
 
+                    return serviceResponse;
+                }
+
+                var addRoleResult = await userManager.AddToRoleAsync(user, "User");
+                if (!addRoleResult.Succeeded)
+                {
+                    serviceResponse.Data = 0;
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "Failed to assign role to user.";
+                    serviceResponse.StatusCode = HttpStatusCode.BadRequest;
                     return serviceResponse;
                 }
 
