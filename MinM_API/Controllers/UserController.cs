@@ -21,10 +21,21 @@ namespace MinM_API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         [Route("useInfo")]
         public async Task<ActionResult<ServiceResponse<GetUserDto>>> GetUserInfo()
         {
             var response = await _userService.GetUserInfo(User);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpPut]
+        [Authorize]
+        [Route("UpdateInfo")]
+        public async Task<ActionResult<ServiceResponse<GetUserDto>>> UpdateInfo(UpdateUserDto updateUserDto)
+        {
+            var response = await _userService.UpdateUserInfo(User, updateUserDto);
 
             return StatusCode((int)response.StatusCode, response);
         }

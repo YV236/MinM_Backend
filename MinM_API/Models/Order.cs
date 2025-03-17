@@ -8,8 +8,8 @@
         public virtual User User { get; set; } = null!;
         public string AddressId { get; set; }
         public virtual Address Address { get; set; } = null!;
-        public virtual List<OrderItem> OrderItems { get; set; } = new();
+        public virtual List<OrderItem> OrderItems { get; set; } = [];
         public Status Status { get; set; }
-        public string PaymentMethod { get; set; } = "Card"; // Спосіб оплати
+        public string PaymentMethod { get; set; } = "Card";
     }
 }

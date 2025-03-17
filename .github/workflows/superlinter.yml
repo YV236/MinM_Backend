@@ -32,7 +32,7 @@ jobs:
 
       # - name: Run tests (later, when tests are available)
       #   run: dotnet test --no-restore --verbosity normal
-
+      
   lint:
     runs-on: ubuntu-latest
     steps:

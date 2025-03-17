@@ -28,22 +28,20 @@ namespace MinM_API.Repositories.Implementations
 
             foreach (var property in properties)
             {
-                var value = property.GetValue(user) as string;
-
-                if (value is null)
+                if (property.GetValue(user) is not string value)
                 {
                     continue;
                 }
 
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    return false; // Якщо поле містить лише пробіли або порожнє, повертаємо false
+                    return false;
                 }
             }
             return true;
         }
 
-        private string GetNameIdentifier(ClaimsPrincipal claimsPrincipal)
+        private static string GetNameIdentifier(ClaimsPrincipal claimsPrincipal)
         {
             return claimsPrincipal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
         }
