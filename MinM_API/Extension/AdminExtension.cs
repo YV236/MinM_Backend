@@ -9,7 +9,7 @@ namespace MinM_API.Extension
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            string[] roles = { "User", "Admin" };
+            List<string> roles = ["User", "Admin"];
 
             foreach (var role in roles)
             {
