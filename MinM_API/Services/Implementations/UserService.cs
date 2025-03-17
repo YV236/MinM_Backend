@@ -11,8 +11,7 @@ using System.Security.Claims;
 
 namespace MinM_API.Services.Implementations
 {
-    public class UserService(IUserRepository userRepository,
-        UserManager<User> userManager, DataContext context) : IUserService
+    public class UserService(IUserRepository userRepository, UserManager<User> userManager, DataContext context) : IUserService
     {
         public async Task<ServiceResponse<int>> Register(UserRegisterDto userRegisterDto)
         {
@@ -215,6 +214,7 @@ namespace MinM_API.Services.Implementations
                 },
                 PhoneNumber = getUser.PhoneNumber,
             };
+
             serviceResponse.IsSuccessful = true;
             serviceResponse.Message = "The data successfully updated";
             return serviceResponse;
