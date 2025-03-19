@@ -116,5 +116,70 @@ namespace MinM_API.Repositories.Implementations
                 return serviceResponse;
             }
         }
+
+        public async Task<ServiceResponse<int>> DeleteCategory(DeleteCategoryDto categoryDto)
+        {
+            var serviceResponse = new ServiceResponse<int>();
+
+            try
+            {
+                var category = await context.Categories
+                    .Include(c => c.Subcategories)
+                    .FirstOrDefaultAsync(c => c.Id == categoryDto.CategoryId);
+
+                if (category == null)
+                {
+                    serviceResponse.Data = 0;
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "There is no category with such id";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return serviceResponse;
+                }
+
+                if (category.ParentCategoryId == null && categoryDto.Option == DeleteOption.ReassignToParent)
+                    categoryDto.Option = DeleteOption.Orphan;
+
+                if (category.Subcategories!.Any())
+                {
+                    switch (categoryDto.Option)
+                    {
+                        case DeleteOption.CascadeDelete:
+                            context.Categories.RemoveRange(category.Subcategories!);
+                            break;
+
+                        case DeleteOption.ReassignToParent:
+                            foreach (var child in category.Subcategories!)
+                            {
+                                child.ParentCategoryId = category.ParentCategoryId;
+                            }
+                            break;
+
+                        case DeleteOption.Orphan:
+                            foreach (var child in category.Subcategories!)
+                            {
+                                child.ParentCategoryId = null;
+                            }
+                            break;
+                    }
+                }
+
+                context.Categories.Remove(category);
+                await context.SaveChangesAsync();
+
+                serviceResponse.Data = 1;
+                serviceResponse.IsSuccessful = true;
+                serviceResponse.Message = "Category successfully removed";
+                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return serviceResponse;
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Data = 0;
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return serviceResponse;
+            }
+        }
     }
 }

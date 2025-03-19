@@ -7,5 +7,6 @@ namespace MinM_API.Repositories.Interfaces
     {
         Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto categoryDto);
         Task<ServiceResponse<GetCategoryDto>> UpdateCategory(UpdateCategoryDto categoryDto);
+        Task<ServiceResponse<int>> DeleteCategory(DeleteCategoryDto categoryDto);
     }
 }

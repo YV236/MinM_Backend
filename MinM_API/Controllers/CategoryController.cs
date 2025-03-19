@@ -27,5 +27,14 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpDelete]
+        [Route("Delete")]
+        public async Task<ActionResult<ServiceResponse<int>>> DeleteCategory(DeleteCategoryDto deleteCategoryDto)
+        {
+            var response = await categoryService.DeleteCategory(deleteCategoryDto);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
