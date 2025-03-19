@@ -3,7 +3,7 @@ using MinM_API.Dtos.Category;
 
 namespace MinM_API.Repositories.Interfaces
 {
-    public interface IAdminService
+    public interface ICategoryService
     {
         Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto categoryDto);
     }

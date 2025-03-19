@@ -7,7 +7,7 @@ using System.Net;
 
 namespace MinM_API.Repositories.Implementations
 {
-    public class AdminService(DataContext context) : IAdminService
+    public class CategoryService(DataContext context) : ICategoryService
     {
         public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto categoryDto)
         {

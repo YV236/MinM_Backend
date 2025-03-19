@@ -8,7 +8,7 @@ namespace MinM_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AdminController(IAdminService adminService) : ControllerBase
+    public class CategoryController(ICategoryService adminService) : ControllerBase
     {
         [HttpPost]
         [Route("AddCategory")]
