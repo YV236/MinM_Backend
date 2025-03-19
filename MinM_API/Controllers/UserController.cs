@@ -22,7 +22,7 @@ namespace MinM_API.Controllers
 
         [HttpGet]
         [Authorize]
-        [Route("userInfo")]
+        [Route("UserInfo")]
         public async Task<ActionResult<ServiceResponse<GetUserDto>>> GetUserInfo()
         {
             var response = await _userService.GetUserInfo(User);
