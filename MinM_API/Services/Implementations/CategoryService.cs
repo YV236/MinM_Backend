@@ -18,9 +18,9 @@ namespace MinM_API.Services.Implementations
             {
                 var unsortedCategoryList = await context.Categories!.ToListAsync();
 
-                if (unsortedCategoryList == null || !unsortedCategoryList.Any())
+                if (unsortedCategoryList == null || unsortedCategoryList.Count == 0)
                 {
-                    serviceResponse.Data = new List<GetCategoryDto>();
+                    serviceResponse.Data = [];
                     serviceResponse.IsSuccessful = false;
                     serviceResponse.Message = "There are no categories";
                     serviceResponse.StatusCode = HttpStatusCode.NotFound;
@@ -49,7 +49,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = new List<GetCategoryDto>();
+                serviceResponse.Data = [];
                 serviceResponse.IsSuccessful = false;
                 serviceResponse.Message = ex.Message;
                 serviceResponse.StatusCode = HttpStatusCode.BadRequest;
@@ -57,7 +57,7 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        private GetCategoryDto ConvertToDto(Category category, List<Category> allCategories)
+        private static GetCategoryDto ConvertToDto(Category category, List<Category> allCategories)
         {
             var dto = new GetCategoryDto()
             {
@@ -65,7 +65,7 @@ namespace MinM_API.Services.Implementations
                 Name = category.Name,
                 Description = category.Description!,
                 ParentCategoryId = category.ParentCategoryId,
-                SubCategories = new List<GetCategoryDto>()
+                SubCategories = []
             };
 
             var subCategories = allCategories
@@ -211,7 +211,7 @@ namespace MinM_API.Services.Implementations
                 if (category.ParentCategoryId == null && categoryDto.Option == DeleteOption.ReassignToParent)
                     categoryDto.Option = DeleteOption.Orphan;
 
-                if (category.Subcategories!.Any())
+                if (category.Subcategories!.Count != 0)
                 {
                     switch (categoryDto.Option)
                     {
