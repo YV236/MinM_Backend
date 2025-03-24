@@ -1,8 +1,9 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Category;
-using MinM_API.Repositories.Interfaces;
+using MinM_API.Services.Interfaces;
 
 namespace MinM_API.Controllers
 {
@@ -10,8 +11,18 @@ namespace MinM_API.Controllers
     [Route("[controller]")]
     public class CategoryController(ICategoryService categoryService) : ControllerBase
     {
+        [HttpGet]
+        [Route("GetAll")]
+        public async Task<ActionResult<ServiceResponse<List<GetCategoryDto>>>> GetAllCategories()
+        {
+            var response = await categoryService.GetAllCategory();
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
         [HttpPost]
         [Route("Create")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ServiceResponse<GetCategoryDto>>> AddCategory(AddCategoryDto addCategoryDto)
         {
             var response = await categoryService.AddCategory(addCategoryDto);
@@ -21,6 +32,7 @@ namespace MinM_API.Controllers
 
         [HttpPut]
         [Route("Update")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ServiceResponse<GetCategoryDto>>> UpdateCategory(UpdateCategoryDto updateCategoryDto)
         {
             var response = await categoryService.UpdateCategory(updateCategoryDto);
@@ -30,6 +42,7 @@ namespace MinM_API.Controllers
 
         [HttpDelete]
         [Route("Delete")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ServiceResponse<int>>> DeleteCategory(DeleteCategoryDto deleteCategoryDto)
         {
             var response = await categoryService.DeleteCategory(deleteCategoryDto);
