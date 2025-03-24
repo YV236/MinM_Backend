@@ -16,45 +16,33 @@ namespace MinM_API.Services.Implementations
 
             try
             {
-                var categoryList = await context.Categories!.ToListAsync();
+                var unsortedCategoryList = await context.Categories!.ToListAsync();
 
-                if (categoryList == null)
+                if (unsortedCategoryList == null || !unsortedCategoryList.Any())
                 {
                     serviceResponse.Data = new List<GetCategoryDto>();
                     serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There is no category with such id";
+                    serviceResponse.Message = "There are no categories";
                     serviceResponse.StatusCode = HttpStatusCode.NotFound;
                     return serviceResponse;
                 }
 
+                var rootCategories = unsortedCategoryList
+                    .Where(c => c.ParentCategoryId == null)
+                    .OrderBy(c => c.Name)
+                    .ToList();
+
                 var getCategoryDtoList = new List<GetCategoryDto>();
 
-                foreach (var category in categoryList)
+                foreach (var category in rootCategories)
                 {
-                    var getCategory = new GetCategoryDto()
-                    {
-                        Name = category.Name,
-                        Description = category.Description!,
-                        ParentCategoryId = category.ParentCategoryId,
-                    };
-
-                    getCategory.SubCategories ??= new List<GetCategoryDto>();
-
-                    foreach (var subCategory in category.Subcategories!)
-                    {
-                        getCategory.SubCategories!.Add(new GetCategoryDto()
-                        {
-                            Id = subCategory.Id,
-                            Name = subCategory.Name,
-                            ParentCategoryId = subCategory.ParentCategoryId ?? "",
-                        });
-                    }
+                    var getCategory = ConvertToDto(category, unsortedCategoryList);
                     getCategoryDtoList.Add(getCategory);
                 }
 
                 serviceResponse.Data = getCategoryDtoList;
                 serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Successful extraction of catgories";
+                serviceResponse.Message = "Successful extraction of categories";
                 serviceResponse.StatusCode = HttpStatusCode.OK;
 
                 return serviceResponse;
@@ -67,6 +55,30 @@ namespace MinM_API.Services.Implementations
                 serviceResponse.StatusCode = HttpStatusCode.BadRequest;
                 return serviceResponse;
             }
+        }
+
+        private GetCategoryDto ConvertToDto(Category category, List<Category> allCategories)
+        {
+            var dto = new GetCategoryDto()
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description!,
+                ParentCategoryId = category.ParentCategoryId,
+                SubCategories = new List<GetCategoryDto>()
+            };
+
+            var subCategories = allCategories
+                .Where(c => c.ParentCategoryId == category.Id)
+                .OrderBy(c => c.Name)
+                .ToList();
+
+            foreach (var subCategory in subCategories)
+            {
+                dto.SubCategories.Add(ConvertToDto(subCategory, allCategories));
+            }
+
+            return dto;
         }
 
         public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto categoryDto)
