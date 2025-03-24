@@ -3,13 +3,72 @@ using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Category;
 using MinM_API.Models;
-using MinM_API.Repositories.Interfaces;
+using MinM_API.Services.Interfaces;
 using System.Net;
 
-namespace MinM_API.Repositories.Implementations
+namespace MinM_API.Services.Implementations
 {
     public class CategoryService(DataContext context) : ICategoryService
     {
+        public async Task<ServiceResponse<List<GetCategoryDto>>> GetAllCategory()
+        {
+            var serviceResponse = new ServiceResponse<List<GetCategoryDto>>();
+
+            try
+            {
+                var categoryList = await context.Categories!.ToListAsync();
+
+                if (categoryList == null)
+                {
+                    serviceResponse.Data = new List<GetCategoryDto>();
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "There is no category with such id";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return serviceResponse;
+                }
+
+                var getCategoryDtoList = new List<GetCategoryDto>();
+
+                foreach (var category in categoryList)
+                {
+                    var getCategory = new GetCategoryDto()
+                    {
+                        Name = category.Name,
+                        Description = category.Description!,
+                        ParentCategoryId = category.ParentCategoryId,
+                    };
+
+                    getCategory.SubCategories ??= new List<GetCategoryDto>();
+
+                    foreach (var subCategory in category.Subcategories!)
+                    {
+                        getCategory.SubCategories!.Add(new GetCategoryDto()
+                        {
+                            Id = subCategory.Id,
+                            Name = subCategory.Name,
+                            ParentCategoryId = subCategory.ParentCategoryId ?? "",
+                        });
+                    }
+                    getCategoryDtoList.Add(getCategory);
+                }
+
+                serviceResponse.Data = getCategoryDtoList;
+                serviceResponse.IsSuccessful = true;
+                serviceResponse.Message = "Successful extraction of catgories";
+                serviceResponse.StatusCode = HttpStatusCode.OK;
+
+                return serviceResponse;
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Data = new List<GetCategoryDto>();
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return serviceResponse;
+            }
+        }
+
         public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto categoryDto)
         {
             var serviceResponse = new ServiceResponse<GetCategoryDto>();
@@ -69,13 +128,14 @@ namespace MinM_API.Repositories.Implementations
                     return serviceResponse;
                 }
 
-                if(category.Id == categoryDto.ParentCategoryId)
+                if (category.Id == categoryDto.ParentCategoryId)
                 {
                     throw new Exception("You cannot provide the same Id as the Parent Id for this category");
                 }
 
                 var parentCategory = await context.Categories.FirstOrDefaultAsync(c => c.Id == categoryDto.ParentCategoryId);
-                if (parentCategory == null)
+
+                if (categoryDto.ParentCategoryId != null && parentCategory == null)
                 {
                     serviceResponse.Data = new GetCategoryDto();
                     serviceResponse.IsSuccessful = false;
@@ -107,7 +167,7 @@ namespace MinM_API.Repositories.Implementations
 
                 return serviceResponse;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 serviceResponse.Data = new GetCategoryDto();
                 serviceResponse.IsSuccessful = false;
