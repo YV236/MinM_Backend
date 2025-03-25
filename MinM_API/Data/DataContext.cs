@@ -24,6 +24,8 @@ namespace MinM_API.Data
 
         public DbSet<Product> Products { get; set; }
 
+        public DbSet<ProductImage> ProductImages { get; set; }
+
         public DbSet<Review> Reviews { get; set; }
 
         public DbSet<WishlistItem> WishlistItems { get; set; }
@@ -112,6 +114,12 @@ namespace MinM_API.Data
                 .WithMany(d => d.Products)
                 .HasForeignKey(p => p.SeasonId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<ProductImage>()
+                .HasOne(p => p.Product)
+                .WithMany(d => d.ProductImages)
+                .HasForeignKey(p => p.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<User>()
                 .HasIndex(u => u.Email)
