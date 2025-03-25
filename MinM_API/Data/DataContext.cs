@@ -14,6 +14,8 @@ namespace MinM_API.Data
 
         public DbSet<Discount> Discounts { get; set; }
 
+        public DbSet<Season> Seasons { get; set; }
+
         public DbSet<NewsletterSubscription> NewsletterSubscriptions { get; set; }
 
         public DbSet<Order> Orders { get; set; }
@@ -103,6 +105,12 @@ namespace MinM_API.Data
                 .HasOne(p => p.Discount)
                 .WithMany(d => d.Products)
                 .HasForeignKey(p => p.DiscountId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Product>()
+                .HasOne(p => p.Season)
+                .WithMany(d => d.Products)
+                .HasForeignKey(p => p.SeasonId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.Entity<User>()

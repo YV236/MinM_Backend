@@ -437,7 +437,7 @@ namespace MinM_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Season");
+                    b.ToTable("Seasons");
                 });
 
             modelBuilder.Entity("MinM_API.Models.User", b =>
@@ -697,7 +697,8 @@ namespace MinM_API.Migrations
 
                     b.HasOne("MinM_API.Models.Season", "Season")
                         .WithMany("Products")
-                        .HasForeignKey("SeasonId");
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Category");
 

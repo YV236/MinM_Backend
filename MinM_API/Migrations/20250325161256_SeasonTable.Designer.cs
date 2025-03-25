@@ -12,7 +12,7 @@ using MinM_API.Data;
 namespace MinM_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250325145821_SeasonTable")]
+    [Migration("20250325161256_SeasonTable")]
     partial class SeasonTable
     {
         /// <inheritdoc />
@@ -440,7 +440,7 @@ namespace MinM_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Season");
+                    b.ToTable("Seasons");
                 });
 
             modelBuilder.Entity("MinM_API.Models.User", b =>
@@ -700,7 +700,8 @@ namespace MinM_API.Migrations
 
                     b.HasOne("MinM_API.Models.Season", "Season")
                         .WithMany("Products")
-                        .HasForeignKey("SeasonId");
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Category");
 

@@ -24,7 +24,7 @@ namespace MinM_API.Migrations
                 nullable: true);
 
             migrationBuilder.CreateTable(
-                name: "Season",
+                name: "Seasons",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -34,7 +34,7 @@ namespace MinM_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Season", x => x.Id);
+                    table.PrimaryKey("PK_Seasons", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
@@ -43,10 +43,10 @@ namespace MinM_API.Migrations
                 column: "SeasonId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Products_Season_SeasonId",
+                name: "FK_Products_Seasons_SeasonId",
                 table: "Products",
                 column: "SeasonId",
-                principalTable: "Season",
+                principalTable: "Seasons",
                 principalColumn: "Id");
         }
 
@@ -54,11 +54,11 @@ namespace MinM_API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Products_Season_SeasonId",
+                name: "FK_Products_Seasons_SeasonId",
                 table: "Products");
 
             migrationBuilder.DropTable(
-                name: "Season");
+                name: "Seasons");
 
             migrationBuilder.DropIndex(
                 name: "IX_Products_SeasonId",
