@@ -10,7 +10,8 @@
         public int UnitsInStock { get; set; }
         public bool IsStock { get; set; }
         public string CategoryId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
         public string SKU { get; set; } = string.Empty; // Product article
-        public virtual List<string> ImageUrls { get; set; } = []; // Product photo
+        public virtual List<GetProductImageDto> ImageUrls { get; set; } = []; // Product photo
     }
 }
