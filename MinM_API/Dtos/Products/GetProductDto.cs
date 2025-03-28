@@ -6,6 +6,7 @@
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
+        public List<string> ProductVariant { get; set; } = [];
         public decimal? DiscountPrice { get; set; } // If there is a discount
         public int UnitsInStock { get; set; }
         public bool IsStock { get; set; }
