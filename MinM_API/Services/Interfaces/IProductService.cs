@@ -7,5 +7,6 @@ namespace MinM_API.Services.Interfaces
     {
         public Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto);
         public Task<ServiceResponse<List<GetProductDto>>> GetAllProducts();
+        public Task<ServiceResponse<GetProductDto>> GetProductById(string id);
     }
 }

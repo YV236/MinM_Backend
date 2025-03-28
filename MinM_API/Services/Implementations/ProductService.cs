@@ -133,7 +133,52 @@ namespace MinM_API.Services.Implementations
                 });
             }
 
+            foreach (var variant in product.ProductVariant)
+            {
+                dto.ProductVariant.Add(variant);
+            }
+
             return dto;
+        }
+
+        public async Task<ServiceResponse<GetProductDto>> GetProductById(string id)
+        {
+            var serviceResponse = new ServiceResponse<GetProductDto>();
+
+            try
+            {
+                var product = await context.Products
+                    .Include(p => p.Discount)
+                    .Include(p => p.Season)
+                    .Include(p => p.ProductImages)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if(product == null) 
+                {
+                    serviceResponse.Data = new GetProductDto();
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "There are no products";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return serviceResponse;
+                }
+
+                var getProduct=ConvertToDto(product);
+
+                serviceResponse.Data = getProduct;
+                serviceResponse.IsSuccessful = true;
+                serviceResponse.Message = "Successful extraction of product by id";
+                serviceResponse.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+
+                serviceResponse.Data = new GetProductDto();
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+            }
+
+            return serviceResponse;
         }
     }
 }
