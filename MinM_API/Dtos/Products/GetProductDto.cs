@@ -9,6 +9,7 @@
         public decimal? DiscountPrice { get; set; } // If there is a discount
         public int UnitsInStock { get; set; }
         public bool IsStock { get; set; }
+        public bool? IsSeasonal { get; set; }
         public string CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public string SKU { get; set; } = string.Empty; // Product article
