@@ -18,5 +18,14 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpGet]
+        [Route("GetAll")]
+        public async Task<ActionResult<ServiceResponse<List<GetProductDto>>>> GetAllProducts()
+        {
+            var response = await productService.GetAllProducts();
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
