@@ -1,6 +1,10 @@
-﻿namespace MinM_API.Services.Interfaces
+﻿using MinM_API.Dtos;
+using MinM_API.Dtos.Products;
+
+namespace MinM_API.Services.Interfaces
 {
     public interface IProductService
     {
+        public Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto);
     }
 }

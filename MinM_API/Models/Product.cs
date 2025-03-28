@@ -14,7 +14,7 @@
         public virtual Discount? Discount { get; set; }
         public decimal? DiscountPrice { get; set; } // If there is a discount
         public bool? IsSeasonal { get; set; } = false;
-        public string? SeasonId { get; set; } = string.Empty;
+        public string? SeasonId { get; set; }
         public virtual Season? Season { get; set; }
         public int UnitsInStock { get; set; }
         public bool IsStock { get; set; }
