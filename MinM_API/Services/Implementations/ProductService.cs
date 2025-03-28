@@ -22,6 +22,7 @@ namespace MinM_API.Services.Implementations
                     Price = addProductDto.Price,
                     ProductVariant = addProductDto.ProductVariant,
                     UnitsInStock = addProductDto.UnitsInStock,
+                    IsStock = addProductDto.IsStock,
                     CategoryId = addProductDto.CategoryId,
                     SKU = addProductDto.SKU,
                     ProductImages = []
