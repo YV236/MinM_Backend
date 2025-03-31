@@ -19,6 +19,15 @@ namespace MinM_API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+        [HttpPut]
+        [Route("Update")]
+        public async Task<ActionResult<ServiceResponse<int>>> UpdateProduct(UpdateProductDto productDto)
+        {
+            var response = await productService.UpdateProduct(productDto);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
         [HttpGet]
         [Route("GetAll")]
         public async Task<ActionResult<ServiceResponse<List<GetProductDto>>>> GetAllProducts()

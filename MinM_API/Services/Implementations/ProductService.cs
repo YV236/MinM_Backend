@@ -62,6 +62,75 @@ namespace MinM_API.Services.Implementations
             return serviceResponse;
         }
 
+        public async Task<ServiceResponse<int>> UpdateProduct(UpdateProductDto updateProductDto)
+        {
+            var serviceResponse = new ServiceResponse<int>();
+
+            try
+            {
+                var product = await context.Products
+                    .Include(p => p.ProductImages)
+                    .FirstOrDefaultAsync(p => p.Id == updateProductDto.Id);
+
+                if (product == null)
+                {
+                    serviceResponse.Message = "Product not found";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return serviceResponse;
+                }
+
+                product.Name = updateProductDto.Name;
+                product.Description = updateProductDto.Description;
+                product.Price = updateProductDto.Price;
+                product.ProductVariant = updateProductDto.ProductVariant;
+                product.UnitsInStock = updateProductDto.UnitsInStock;
+                product.CategoryId = updateProductDto.CategoryId;
+                product.SKU = updateProductDto.SKU;
+
+                var existingImages = product.ProductImages.Select(pi => pi.FilePath).ToList();
+
+                var newImages = updateProductDto.ImageUrls.Except(existingImages).ToList();
+
+                var imagesToRemove = existingImages.Except(updateProductDto.ImageUrls).ToList();
+
+                foreach (var imagePath in imagesToRemove)
+                {
+                    var imageToDelete = product.ProductImages.FirstOrDefault(pi => pi.FilePath == imagePath);
+                    if (imageToDelete != null)
+                    {
+                        context.ProductImages.Remove(imageToDelete);
+                        File.Delete(imagePath);
+                    }
+                }
+
+                foreach (var newImage in newImages)
+                {
+                    product.ProductImages.Add(new ProductImage
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        ProductId = product.Id,
+                        FilePath = newImage
+                    });
+                }
+
+                await context.SaveChangesAsync();
+
+                serviceResponse.Data = 1;
+                serviceResponse.IsSuccessful = true;
+                serviceResponse.Message = "Product successfully updated";
+                serviceResponse.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Data = 0;
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+            }
+            
+            return serviceResponse;
+        }
+
         public async Task<ServiceResponse<List<GetProductDto>>> GetAllProducts()
         {
             var serviceResponse = new ServiceResponse<List<GetProductDto>>();
