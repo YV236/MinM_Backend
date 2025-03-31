@@ -166,7 +166,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = new List<GetProductDto>();
+                serviceResponse.Data = [];
                 serviceResponse.IsSuccessful = false;
                 serviceResponse.Message = ex.Message;
                 serviceResponse.StatusCode = HttpStatusCode.BadRequest;
