@@ -127,7 +127,7 @@ namespace MinM_API.Services.Implementations
                 serviceResponse.Message = ex.Message;
                 serviceResponse.StatusCode = HttpStatusCode.BadRequest;
             }
-            
+
             return serviceResponse;
         }
 
@@ -140,7 +140,7 @@ namespace MinM_API.Services.Implementations
                 var productsList = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p=>p.ProductImages)
+                    .Include(p => p.ProductImages)
                     .ToListAsync();
 
                 if (productsList == null || productsList.Count == 0)
@@ -164,7 +164,7 @@ namespace MinM_API.Services.Implementations
                 serviceResponse.Message = "Successful extraction of products";
                 serviceResponse.StatusCode = HttpStatusCode.OK;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 serviceResponse.Data = new List<GetProductDto>();
                 serviceResponse.IsSuccessful = false;
@@ -194,7 +194,7 @@ namespace MinM_API.Services.Implementations
             if (product.Discount != null)
                 dto.DiscountPrice = dto.Price * (product.DiscountPrice / 100);
 
-            foreach(var image in product.ProductImages)
+            foreach (var image in product.ProductImages)
             {
                 dto.ImageUrls.Add(new GetProductImageDto()
                 {
@@ -222,7 +222,7 @@ namespace MinM_API.Services.Implementations
                     .Include(p => p.ProductImages)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
-                if(product == null) 
+                if (product == null)
                 {
                     serviceResponse.Data = new GetProductDto();
                     serviceResponse.IsSuccessful = false;
@@ -231,7 +231,7 @@ namespace MinM_API.Services.Implementations
                     return serviceResponse;
                 }
 
-                var getProduct=ConvertToDto(product);
+                var getProduct = ConvertToDto(product);
 
                 serviceResponse.Data = getProduct;
                 serviceResponse.IsSuccessful = true;
