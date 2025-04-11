@@ -2,6 +2,7 @@
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Discount;
+using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Linq;
 using System.Net;
@@ -78,9 +79,51 @@ namespace MinM_API.Services.Implementations
             return discountedPrice + fractional;
         }
 
-        public Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts()
+        public async Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts()
         {
-            throw new NotImplementedException();
+            var serviceResponse = new ServiceResponse<List<GetDiscountDto>>();
+
+            try
+            {
+                var discountList = await context.Discounts.ToListAsync();
+
+                if (discountList == null || discountList.Count == 0)
+                {
+                    serviceResponse.Data = [];
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "There are no products";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return serviceResponse;
+                }
+
+                var getDiscountList = new List<GetDiscountDto>();
+
+                foreach (var discount in discountList)
+                {
+                    getDiscountList.Add(new GetDiscountDto
+                    {
+                        Id = discount.Id,
+                        Name = discount.Name,
+                        DiscountPercentage = discount.DiscountPercentage,
+                        StartDate = DateTime.Now,
+                        EndDate = DateTime.Now,
+                    });
+                }
+
+                serviceResponse.Data = getDiscountList;
+                serviceResponse.IsSuccessful = true;
+                serviceResponse.Message = "Successful extraction of discounts";
+                serviceResponse.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Data = [];
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+            }
+
+            return serviceResponse;
         }
     }
 }
