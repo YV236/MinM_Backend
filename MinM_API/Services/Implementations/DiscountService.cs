@@ -125,5 +125,10 @@ namespace MinM_API.Services.Implementations
 
             return serviceResponse;
         }
+
+        public Task<ServiceResponse<GetDiscountDto>> GetDiscountById(string id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

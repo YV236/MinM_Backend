@@ -7,5 +7,6 @@ namespace MinM_API.Services.Interfaces
     {
         Task<ServiceResponse<int>> AddDiscount(AddDiscountDto dto);
         Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts();
+        Task<ServiceResponse<GetDiscountDto>> GetDiscountById(string id);
     }
 }
