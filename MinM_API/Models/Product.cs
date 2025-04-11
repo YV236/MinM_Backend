@@ -10,6 +10,7 @@
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public List<string> ProductVariant { get; set; } = [];
+        public bool IsDiscounted { get; set; } = false;
         public string? DiscountId { get; set; }
         public virtual Discount? Discount { get; set; }
         public decimal? DiscountPrice { get; set; } // If there is a discount

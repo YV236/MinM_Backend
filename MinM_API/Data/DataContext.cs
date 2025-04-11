@@ -107,7 +107,7 @@ namespace MinM_API.Data
                 .HasOne(p => p.Discount)
                 .WithMany(d => d.Products)
                 .HasForeignKey(p => p.DiscountId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<Product>()
                 .HasOne(p => p.Season)
