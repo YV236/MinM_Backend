@@ -77,5 +77,10 @@ namespace MinM_API.Services.Implementations
 
             return discountedPrice + fractional;
         }
+
+        public Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
