@@ -64,13 +64,13 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
-app.UseHttpsRedirection();
-app.MapIdentityApi<User>();
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapIdentityApi<User>();
 app.MapControllers();
+
 
 app.Run();
