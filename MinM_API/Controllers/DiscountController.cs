@@ -18,5 +18,13 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpGet]
+        public async Task<ActionResult<ServiceResponse<List<GetDiscountDto>>>> GetAllDiscounts()
+        {
+            var response = await discountService.GetAllDiscounts();
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
