@@ -27,5 +27,14 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<ActionResult<ServiceResponse<GetDiscountDto>>> GetDiscountById(string id)
+        {
+            var response = await discountService.GetDiscountById(id);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
