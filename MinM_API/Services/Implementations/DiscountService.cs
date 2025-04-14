@@ -2,6 +2,7 @@
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Discount;
+using MinM_API.Dtos.Products;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Linq;
@@ -91,7 +92,7 @@ namespace MinM_API.Services.Implementations
                 {
                     serviceResponse.Data = [];
                     serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There are no products";
+                    serviceResponse.Message = "There are no discounts";
                     serviceResponse.StatusCode = HttpStatusCode.NotFound;
                     return serviceResponse;
                 }
@@ -126,9 +127,77 @@ namespace MinM_API.Services.Implementations
             return serviceResponse;
         }
 
-        public Task<ServiceResponse<GetDiscountDto>> GetDiscountById(string id)
+        public async Task<ServiceResponse<GetDiscountDto>> GetDiscountById(string id)
         {
-            throw new NotImplementedException();
+            var serviceResponse = new ServiceResponse<GetDiscountDto>();
+
+            try
+            {
+                var discount = await context.Discounts.Include(d => d.Products)
+                    .ThenInclude(p => p.ProductImages).FirstOrDefaultAsync(d => d.Id == id);
+
+                if(discount == null)
+                {
+                    serviceResponse.Data = null;
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "There is no discount with such id";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return serviceResponse;
+                }
+
+                var getDiscount = new GetDiscountDto
+                {
+                    Id = id,
+                    Name = discount.Name,
+                    DiscountPercentage = discount.DiscountPercentage,
+                    StartDate = discount.StartDate,
+                    EndDate = discount.EndDate,
+                };
+
+                foreach(var product in discount.Products)
+                {
+                    var dto = new GetProductDto
+                    {
+                        Id = product.Id,
+                        Name = product.Name,
+                        Description = product.Description,
+                        Price = product.Price,
+                        UnitsInStock = product.UnitsInStock,
+                        IsStock = product.IsStock,
+                        IsSeasonal = product.IsSeasonal,
+                        CategoryId = product.CategoryId,
+                        CategoryName = product.Category.Name,
+                        SKU = product.SKU,
+                    };
+
+                    if (product.Discount != null)
+                        dto.DiscountPrice = dto.Price * (product.DiscountPrice / 100);
+
+                    foreach (var image in product.ProductImages)
+                    {
+                        dto.ImageUrls.Add(new GetProductImageDto()
+                        {
+                            FilePath = image.FilePath,
+                        });
+                    }
+
+                    getDiscount.Products.Add(dto);
+                }
+
+                serviceResponse.Data = getDiscount;
+                serviceResponse.IsSuccessful = true;
+                serviceResponse.Message = "Successful extraction of discount";
+                serviceResponse.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Data = new GetDiscountDto();
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+            }
+
+            return serviceResponse;
         }
     }
 }
