@@ -20,6 +20,7 @@ namespace MinM_API.Controllers
         }
 
         [HttpGet]
+        [Route("GetAll")]
         public async Task<ActionResult<ServiceResponse<List<GetDiscountDto>>>> GetAllDiscounts()
         {
             var response = await discountService.GetAllDiscounts();
