@@ -134,7 +134,7 @@ namespace MinM_API.Services.Implementations
                 var discount = await context.Discounts.Include(d => d.Products)
                     .ThenInclude(p => p.ProductImages).FirstOrDefaultAsync(d => d.Id == id);
 
-                if(discount == null)
+                if (discount == null)
                 {
                     serviceResponse.Data = null;
                     serviceResponse.IsSuccessful = false;
@@ -152,7 +152,7 @@ namespace MinM_API.Services.Implementations
                     EndDate = discount.EndDate,
                 };
 
-                foreach(var product in discount.Products)
+                foreach (var product in discount.Products)
                 {
                     var dto = new GetProductDto
                     {
