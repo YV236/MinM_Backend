@@ -27,10 +27,8 @@ namespace MinM_API.Services.Implementations
                     EndDate = dto.EndDate,
                 };
 
-                var productIds = dto.Products.Select(p => p.Id).ToList();
-
                 var productList = await context.Products
-                    .Where(p => productIds.Contains(p.Id))
+                    .Where(p => dto.ProductIds.Contains(p.Id))
                     .ToListAsync();
 
                 if (productList == null)
