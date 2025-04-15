@@ -48,6 +48,17 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("NextJsCorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -67,6 +78,8 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseCors("NextJsCorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
