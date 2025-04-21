@@ -8,6 +8,6 @@
 
         public string? ParentCategoryId { get; set; }
 
-        public List<GetCategoryDto>? SubCategories { get; set; }
+        //public List<GetCategoryDto>? SubCategories { get; set; }
     }
 }

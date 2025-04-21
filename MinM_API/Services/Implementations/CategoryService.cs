@@ -27,14 +27,14 @@ namespace MinM_API.Services.Implementations
                     return serviceResponse;
                 }
 
-                var rootCategories = unsortedCategoryList
-                    .Where(c => c.ParentCategoryId == null)
-                    .OrderBy(c => c.Name)
-                    .ToList();
+                //var rootCategories = unsortedCategoryList
+                //    .Where(c => c.ParentCategoryId == null)
+                //    .OrderBy(c => c.Name)
+                //    .ToList();
 
                 var getCategoryDtoList = new List<GetCategoryDto>();
 
-                foreach (var category in rootCategories)
+                foreach (var category in unsortedCategoryList)
                 {
                     var getCategory = ConvertToDto(category, unsortedCategoryList);
                     getCategoryDtoList.Add(getCategory);
@@ -65,18 +65,18 @@ namespace MinM_API.Services.Implementations
                 Name = category.Name,
                 Description = category.Description!,
                 ParentCategoryId = category.ParentCategoryId,
-                SubCategories = []
+                //SubCategories = []
             };
 
-            var subCategories = allCategories
-                .Where(c => c.ParentCategoryId == category.Id)
-                .OrderBy(c => c.Name)
-                .ToList();
+            //var subCategories = allCategories
+            //    .Where(c => c.ParentCategoryId == category.Id)
+            //    .OrderBy(c => c.Name)
+            //    .ToList();
 
-            foreach (var subCategory in subCategories)
-            {
-                dto.SubCategories.Add(ConvertToDto(subCategory, allCategories));
-            }
+            //foreach (var subCategory in subCategories)
+            //{
+            //    dto.SubCategories.Add(ConvertToDto(subCategory, allCategories));
+            //}
 
             return dto;
         }
