@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
+using System.Linq;
 
 namespace MinM_API.Services.Implementations
 {
@@ -31,6 +32,13 @@ namespace MinM_API.Services.Implementations
 
                     foreach (var discount in expiredDiscounts)
                     {
+                        foreach (var product in discount.Products.ToList())
+                        {
+                            product.Discount = null;
+                            product.DiscountPrice = null;
+                            product.IsDiscounted = false;
+                        }
+
                         if (discount.RemoveAfterExpiration)
                         {
                             db.Discounts.Remove(discount);
