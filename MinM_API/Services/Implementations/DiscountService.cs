@@ -80,7 +80,61 @@ namespace MinM_API.Services.Implementations
 
         public async Task<ServiceResponse<int>> UpdateDiscount(UpdateDiscountDto dto)
         {
-           throw new NotImplementedException();
+            var serviceResponse = new ServiceResponse<int>();
+
+            try
+            {
+                var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == dto.Id);
+
+                if (discount == null)
+                {
+                    serviceResponse.Message = "Discount not found";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return serviceResponse;
+                }
+
+                discount.Name = dto.Name;
+                discount.DiscountPercentage = dto.DiscountPercentage;
+                discount.StartDate = dto.StartDate;
+                discount.EndDate = dto.EndDate;
+                discount.Products = new List<Product>();
+
+                var productList = await context.Products
+                    .Where(p => dto.ProductIds.Contains(p.Id))
+                    .ToListAsync();
+
+                if (productList == null)
+                {
+                    serviceResponse.Data = 0;
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "Product not found";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return serviceResponse;
+                }
+
+                foreach (var product in productList)
+                {
+                    product.Discount = discount;
+                    product.DiscountId = discount.Id;
+                    product.DiscountPrice = CountDiscountPrice(product.Price, discount.DiscountPercentage);
+                }
+
+                await context.SaveChangesAsync();
+
+                serviceResponse.Data = 1;
+                serviceResponse.IsSuccessful = true;
+                serviceResponse.Message = "Discount successfully updated";
+                serviceResponse.StatusCode = HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Data = 0;
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message = ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+            }
+
+            return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts()
