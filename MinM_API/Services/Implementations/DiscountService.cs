@@ -84,7 +84,9 @@ namespace MinM_API.Services.Implementations
 
             try
             {
-                var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == dto.Id);
+                var discount = await context.Discounts
+                    .Include(d => d.Products)
+                    .FirstOrDefaultAsync(d => d.Id == dto.Id);
 
                 if (discount == null)
                 {
@@ -97,26 +99,40 @@ namespace MinM_API.Services.Implementations
                 discount.DiscountPercentage = dto.DiscountPercentage;
                 discount.StartDate = dto.StartDate;
                 discount.EndDate = dto.EndDate;
-                discount.Products = new List<Product>();
+
+                var updatedProductIds = dto.ProductIds.ToHashSet();
+                foreach (var oldProduct in discount.Products.ToList())
+                {
+                    if (!updatedProductIds.Contains(oldProduct.Id))
+                    {
+                        oldProduct.Discount = null;
+                        oldProduct.DiscountId = null;
+                        oldProduct.DiscountPrice = null;
+                        oldProduct.IsDiscounted = false;
+                    }
+                }
 
                 var productList = await context.Products
                     .Where(p => dto.ProductIds.Contains(p.Id))
                     .ToListAsync();
 
-                if (productList == null)
+                if (productList.Count == 0)
                 {
                     serviceResponse.Data = 0;
                     serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "Product not found";
+                    serviceResponse.Message = "No products found for provided IDs";
                     serviceResponse.StatusCode = HttpStatusCode.NotFound;
                     return serviceResponse;
                 }
+
+                discount.Products = productList;
 
                 foreach (var product in productList)
                 {
                     product.Discount = discount;
                     product.DiscountId = discount.Id;
                     product.DiscountPrice = CountDiscountPrice(product.Price, discount.DiscountPercentage);
+                    product.IsDiscounted = true;
                 }
 
                 await context.SaveChangesAsync();
@@ -136,6 +152,7 @@ namespace MinM_API.Services.Implementations
 
             return serviceResponse;
         }
+
 
         public async Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts()
         {
