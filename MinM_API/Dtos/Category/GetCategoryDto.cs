@@ -7,7 +7,5 @@
         public string Description { get; set; } = string.Empty;
 
         public string? ParentCategoryId { get; set; }
-
-        //public List<GetCategoryDto>? SubCategories { get; set; }
     }
 }
