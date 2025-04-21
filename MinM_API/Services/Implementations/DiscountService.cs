@@ -78,6 +78,11 @@ namespace MinM_API.Services.Implementations
             return discountedPrice + fractional;
         }
 
+        public async Task<ServiceResponse<int>> UpdateDiscount(UpdateDiscountDto dto)
+        {
+           throw new NotImplementedException();
+        }
+
         public async Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts()
         {
             var serviceResponse = new ServiceResponse<List<GetDiscountDto>>();
