@@ -2,6 +2,8 @@
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Category;
+using MinM_API.Extension;
+using MinM_API.Migrations;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Net;
@@ -27,18 +29,19 @@ namespace MinM_API.Services.Implementations
                     return serviceResponse;
                 }
 
-                var rootCategories = unsortedCategoryList
+                var sortedCategories = unsortedCategoryList
                     .OrderBy(c => c.Name)
                     .ToList();
 
                 var getCategoryDtoList = new List<GetCategoryDto>();
 
-                foreach (var category in unsortedCategoryList)
+                foreach (var category in sortedCategories)
                 {
                     var getCategory = new GetCategoryDto()
                     {
                         Id = category.Id,
                         Name = category.Name,
+                        Slug = category.Slug,
                         Description = category.Description!,
                         ParentCategoryId = category.ParentCategoryId,
                     };
@@ -73,6 +76,7 @@ namespace MinM_API.Services.Implementations
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = categoryDto.Name,
+                    Slug = SlugExtension.GenerateSlug(categoryDto.Name),
                     Description = categoryDto.Description,
                     ParentCategoryId = categoryDto.ParentCategoryId,
                 };
@@ -139,6 +143,7 @@ namespace MinM_API.Services.Implementations
                 }
 
                 category!.Name = categoryDto.Name;
+                category.Slug = SlugExtension.GenerateSlug(categoryDto.Name);
                 category.Description = categoryDto.Description;
                 category.ParentCategoryId = categoryDto.ParentCategoryId;
 
