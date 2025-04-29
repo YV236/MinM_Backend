@@ -1,12 +1,16 @@
-﻿namespace MinM_API.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace MinM_API.Models
 {
     /// <summary>
     /// Class for describing the product in the database
     /// </summary>
+    [Index(nameof(Slug), IsUnique = true)]
     public class Product
     {
         public string Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string Slug { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public List<string> ProductVariant { get; set; } = [];

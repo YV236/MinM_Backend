@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace MinM_API.Models
 {
+    [Index(nameof(Slug), IsUnique = true)]
     public class User : IdentityUser
     {
+        public string Slug { get; set; } = string.Empty;
         public string? UserFirstName { get; set; }
         public string? UserLastName { get; set; }
         public string? AddressId { get; set; }
