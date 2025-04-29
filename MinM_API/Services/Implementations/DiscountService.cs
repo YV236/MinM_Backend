@@ -3,6 +3,7 @@ using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Discount;
 using MinM_API.Dtos.Products;
+using MinM_API.Extension;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace MinM_API.Services.Implementations
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = dto.Name,
+                    Slug = SlugExtension.GenerateSlug(dto.Name),
                     DiscountPercentage = dto.DiscountPercentage,
                     StartDate = dto.StartDate,
                     EndDate = dto.EndDate,
@@ -96,6 +98,7 @@ namespace MinM_API.Services.Implementations
                 }
 
                 discount.Name = dto.Name;
+                discount.Slug = SlugExtension.GenerateSlug(dto.Name);
                 discount.DiscountPercentage = dto.DiscountPercentage;
                 discount.StartDate = dto.StartDate;
                 discount.EndDate = dto.EndDate;
@@ -179,6 +182,7 @@ namespace MinM_API.Services.Implementations
                     {
                         Id = discount.Id,
                         Name = discount.Name,
+                        Slug = discount.Slug,
                         DiscountPercentage = discount.DiscountPercentage,
                         StartDate = DateTime.Now,
                         EndDate = DateTime.Now,
@@ -223,6 +227,7 @@ namespace MinM_API.Services.Implementations
                 {
                     Id = id,
                     Name = discount.Name,
+                    Slug = discount.Slug,
                     DiscountPercentage = discount.DiscountPercentage,
                     StartDate = discount.StartDate,
                     EndDate = discount.EndDate,
