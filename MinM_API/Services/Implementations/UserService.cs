@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.User;
+using MinM_API.Extension;
 using MinM_API.Models;
 using MinM_API.Repositories.Interfaces;
 using MinM_API.Services.Interfaces;
@@ -53,6 +54,7 @@ namespace MinM_API.Services.Implementations
             {
                 var user = new User
                 {
+                    Slug = SlugExtension.GenerateSlug(userRegisterDto.Email),
                     UserFirstName = userRegisterDto.UserFirstName,
                     UserLastName = userRegisterDto.UserLastName,
                     Email = userRegisterDto.Email,
@@ -131,6 +133,7 @@ namespace MinM_API.Services.Implementations
                 var userDto = new GetUserDto()
                 {
                     UserName = getUser.UserName!,
+                    Slug = getUser.Slug,
                     UserFirstName = getUser.UserFirstName ?? "",
                     UserLastName = getUser.UserLastName ?? "",
                     Email = getUser.Email,
