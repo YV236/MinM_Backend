@@ -34,7 +34,8 @@ namespace MinM_API.Extension
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    Slug = SlugExtension.GenerateSlug(adminEmail),
                 };
 
                 var result = await userManager.CreateAsync(newAdmin, adminPassword);
