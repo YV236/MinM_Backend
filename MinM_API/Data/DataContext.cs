@@ -109,6 +109,12 @@ namespace MinM_API.Data
                 .HasForeignKey(p => p.DiscountId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            builder.Entity<ProductVariant>()
+                .HasOne(pv => pv.Product)
+                .WithMany(p => p.ProductVariants)
+                .HasForeignKey(pv => pv.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.Entity<Product>()
                 .HasOne(p => p.Season)
                 .WithMany(d => d.Products)
@@ -141,6 +147,5 @@ namespace MinM_API.Data
                 .HasIndex(c => c.Name)
                 .IsUnique();
         }
-
     }
 }

@@ -12,8 +12,10 @@ namespace MinM_API.Models
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public decimal Price { get; set; }
-        public virtual List<ProductVariant> ProductVariant { get; set; } = [];
+        public virtual List<ProductVariant> ProductVariants { get; set; } = [];
+        public string? DiscountId { get; set; }
+        public virtual Discount? Discount { get; set; }
+        public bool IsDiscounted { get; set; } = false;
         public bool? IsSeasonal { get; set; } = false;
         public string? SeasonId { get; set; }
         public virtual Season? Season { get; set; }
