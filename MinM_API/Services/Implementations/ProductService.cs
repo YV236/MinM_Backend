@@ -92,9 +92,6 @@ namespace MinM_API.Services.Implementations
                 product.Name = updateProductDto.Name;
                 product.Slug = SlugExtension.GenerateSlug(updateProductDto.Name);
                 product.Description = updateProductDto.Description;
-                product.Price = updateProductDto.Price;
-                product.ProductVariant = updateProductDto.ProductVariant;
-                product.UnitsInStock = updateProductDto.UnitsInStock;
                 product.CategoryId = updateProductDto.CategoryId;
                 product.SKU = updateProductDto.SKU;
 
@@ -122,6 +119,44 @@ namespace MinM_API.Services.Implementations
                         ProductId = product.Id,
                         FilePath = newImage
                     });
+                }
+
+                var existingVariants = product.ProductVariants.ToList();
+                var dtoVariants = updateProductDto.ProductVariants;
+
+                var dtoVariantIds = dtoVariants.Where(v => !string.IsNullOrEmpty(v.Id)).Select(v => v.Id).ToList();
+                var variantsToRemove = existingVariants.Where(ev => !dtoVariantIds.Contains(ev.Id)).ToList();
+
+                foreach (var variant in variantsToRemove)
+                {
+                    context.ProductVariants.Remove(variant);
+                }
+
+                foreach (var variantDto in dtoVariants)
+                {
+                    if (!string.IsNullOrEmpty(variantDto.Id))
+                    {
+                        var existing = existingVariants.FirstOrDefault(v => v.Id == variantDto.Id);
+                        if (existing != null)
+                        {
+                            existing.Name = variantDto.Name;
+                            existing.Price = variantDto.Price;
+                            existing.UnitsInStock = variantDto.UnitsInStock;
+                            existing.IsStock = variantDto.IsStock;
+                        }
+                    }
+                    else
+                    {
+                        product.ProductVariants.Add(new ProductVariant
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            ProductId = product.Id,
+                            Name = variantDto.Name,
+                            Price = variantDto.Price,
+                            UnitsInStock = variantDto.UnitsInStock,
+                            IsStock = variantDto.IsStock
+                        });
+                    }
                 }
 
                 await context.SaveChangesAsync();
