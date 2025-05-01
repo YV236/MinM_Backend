@@ -1,6 +1,6 @@
-﻿namespace MinM_API.Dtos.Products
+﻿namespace MinM_API.Dtos.ProductVariant
 {
-    public class ProductVariantDto
+    public class AddProductVariantDto
     {
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
