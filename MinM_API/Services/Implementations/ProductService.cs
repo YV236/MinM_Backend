@@ -2,6 +2,7 @@
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Products;
+using MinM_API.Dtos.ProductVariant;
 using MinM_API.Extension;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
@@ -193,17 +194,11 @@ namespace MinM_API.Services.Implementations
                 Name = product.Name,
                 Slug = product.Slug,
                 Description = product.Description,
-                Price = product.Price,
-                UnitsInStock = product.UnitsInStock,
-                IsStock = product.IsStock,
                 IsSeasonal = product.IsSeasonal,
                 CategoryId = product.CategoryId,
                 CategoryName = product.Category.Name,
                 SKU = product.SKU,
             };
-
-            if (product.Discount != null)
-                dto.DiscountPrice = dto.Price * (product.DiscountPrice / 100);
 
             foreach (var image in product.ProductImages)
             {
@@ -213,9 +208,16 @@ namespace MinM_API.Services.Implementations
                 });
             }
 
-            foreach (var variant in product.ProductVariant)
+            foreach (var variant in product.ProductVariants)
             {
-                dto.ProductVariant.Add(variant);
+                dto.ProductVariants.Add(new GetProductVariantDto()
+                {
+                    Name = variant.Name,
+                    Price = variant.Price,
+                    DiscountPrice = variant.DiscountPrice,
+                    UnitsInStock = variant.UnitsInStock,
+                    IsStock = variant.IsStock,
+                });
             }
 
             return dto;
