@@ -23,14 +23,21 @@ namespace MinM_API.Services.Implementations
                     Name = addProductDto.Name,
                     Slug = SlugExtension.GenerateSlug(addProductDto.Name),
                     Description = addProductDto.Description,
-                    Price = addProductDto.Price,
-                    ProductVariant = addProductDto.ProductVariant,
-                    UnitsInStock = addProductDto.UnitsInStock,
-                    IsStock = addProductDto.IsStock,
                     CategoryId = addProductDto.CategoryId,
                     SKU = addProductDto.SKU,
                     ProductImages = []
                 };
+
+                foreach(var productVariant in addProductDto.ProductVariants)
+                {
+                    product.ProductVariants.Add(new Models.ProductVariant()
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = productVariant.Name,
+                        Price = productVariant.Price,
+                        UnitsInStock = productVariant.UnitsInStock,
+                    });                
+                }
 
                 if (addProductDto.ImageUrls != null)
                 {
