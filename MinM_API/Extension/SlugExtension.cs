@@ -11,6 +11,5 @@ namespace MinM_API.Extension
             normalized = Regex.Replace(normalized, @"\s+", "-");
             return normalized.Trim('-');
         }
-
     }
 }

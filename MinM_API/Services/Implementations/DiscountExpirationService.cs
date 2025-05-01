@@ -35,8 +35,12 @@ namespace MinM_API.Services.Implementations
                         foreach (var product in discount.Products.ToList())
                         {
                             product.Discount = null;
-                            product.DiscountPrice = null;
                             product.IsDiscounted = false;
+
+                            foreach (var productVariant in product.ProductVariants)
+                            {
+                                productVariant.DiscountPrice = null;
+                            }
                         }
 
                         if (discount.RemoveAfterExpiration)

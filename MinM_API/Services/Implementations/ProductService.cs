@@ -29,7 +29,7 @@ namespace MinM_API.Services.Implementations
                     ProductImages = []
                 };
 
-                foreach(var productVariant in addProductDto.ProductVariants)
+                foreach (var productVariant in addProductDto.ProductVariants)
                 {
                     product.ProductVariants.Add(new Models.ProductVariant()
                     {
@@ -37,7 +37,7 @@ namespace MinM_API.Services.Implementations
                         Name = productVariant.Name,
                         Price = productVariant.Price,
                         UnitsInStock = productVariant.UnitsInStock,
-                    });                
+                    });
                 }
 
                 if (addProductDto.ImageUrls != null)
