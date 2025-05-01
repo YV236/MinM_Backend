@@ -2,6 +2,7 @@
 {
     public class GetProductVariantDto
     {
+        public string Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public decimal? DiscountPrice { get; set; }

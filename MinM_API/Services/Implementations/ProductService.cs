@@ -212,6 +212,7 @@ namespace MinM_API.Services.Implementations
             {
                 dto.ProductVariants.Add(new GetProductVariantDto()
                 {
+                    Id = variant.Id,
                     Name = variant.Name,
                     Price = variant.Price,
                     DiscountPrice = variant.DiscountPrice,
