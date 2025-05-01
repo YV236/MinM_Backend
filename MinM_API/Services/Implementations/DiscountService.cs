@@ -46,7 +46,12 @@ namespace MinM_API.Services.Implementations
                 {
                     product.Discount = discount;
                     product.DiscountId = discount.Id;
-                    product.DiscountPrice = CountDiscountPrice(product.Price, discount.DiscountPercentage);
+                    product.IsDiscounted = true;
+
+                    foreach (var productVariant in product.ProductVariants)
+                    {
+                        productVariant.DiscountPrice = CountDiscountPrice(productVariant.Price, discount.DiscountPercentage);
+                    }
                 }
 
                 await context.SaveChangesAsync();
@@ -110,8 +115,12 @@ namespace MinM_API.Services.Implementations
                     {
                         oldProduct.Discount = null;
                         oldProduct.DiscountId = null;
-                        oldProduct.DiscountPrice = null;
                         oldProduct.IsDiscounted = false;
+
+                        foreach (var productVariant in oldProduct.ProductVariants)
+                        {
+                            productVariant.DiscountPrice = null;
+                        }
                     }
                 }
 
@@ -134,8 +143,12 @@ namespace MinM_API.Services.Implementations
                 {
                     product.Discount = discount;
                     product.DiscountId = discount.Id;
-                    product.DiscountPrice = CountDiscountPrice(product.Price, discount.DiscountPercentage);
                     product.IsDiscounted = true;
+                    foreach (var productVariant in product.ProductVariants)
+                    {
+                        productVariant.DiscountPrice = CountDiscountPrice(productVariant.Price, discount.DiscountPercentage);
+
+                    }
                 }
 
                 await context.SaveChangesAsync();
@@ -240,17 +253,24 @@ namespace MinM_API.Services.Implementations
                         Id = product.Id,
                         Name = product.Name,
                         Description = product.Description,
-                        Price = product.Price,
-                        UnitsInStock = product.UnitsInStock,
-                        IsStock = product.IsStock,
                         IsSeasonal = product.IsSeasonal,
                         CategoryId = product.CategoryId,
                         CategoryName = product.Category.Name,
                         SKU = product.SKU,
                     };
 
-                    if (product.Discount != null)
-                        dto.DiscountPrice = dto.Price * (product.DiscountPrice / 100);
+                    foreach (var productVariant in product.ProductVariants)
+                    {
+                        dto.ProductVariants.Add(new Dtos.ProductVariant.GetProductVariantDto()
+                        {
+                            Id = productVariant.Id,
+                            Name = productVariant.Name,
+                            Price = productVariant.Price,
+                            DiscountPrice = productVariant.DiscountPrice,
+                            UnitsInStock = productVariant.UnitsInStock,
+                            IsStock = productVariant.IsStock
+                        });
+                    }
 
                     foreach (var image in product.ProductImages)
                     {
