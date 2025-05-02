@@ -9,6 +9,7 @@ namespace MinM_API.Dtos.Discount
         public decimal DiscountPercentage { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public bool RemoveAfterExpiration { get; set; } = false;
         public virtual List<string> ProductIds { get; set; } = [];
     }
 }

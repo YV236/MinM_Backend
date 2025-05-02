@@ -25,6 +25,7 @@ namespace MinM_API.Services.Implementations
                     Name = dto.Name,
                     Slug = SlugExtension.GenerateSlug(dto.Name),
                     DiscountPercentage = dto.DiscountPercentage,
+                    RemoveAfterExpiration = dto.RemoveAfterExpiration,
                     StartDate = dto.StartDate,
                     EndDate = dto.EndDate,
                 };
@@ -107,6 +108,7 @@ namespace MinM_API.Services.Implementations
                 discount.DiscountPercentage = dto.DiscountPercentage;
                 discount.StartDate = dto.StartDate;
                 discount.EndDate = dto.EndDate;
+                discount.RemoveAfterExpiration = dto.RemoveAfterExpiration;
 
                 var updatedProductIds = dto.ProductIds.ToHashSet();
                 foreach (var oldProduct in discount.Products.ToList())
