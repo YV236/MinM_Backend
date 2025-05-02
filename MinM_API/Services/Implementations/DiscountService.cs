@@ -109,6 +109,7 @@ namespace MinM_API.Services.Implementations
                 discount.StartDate = dto.StartDate;
                 discount.EndDate = dto.EndDate;
                 discount.RemoveAfterExpiration = dto.RemoveAfterExpiration;
+                discount.IsActive = true;
 
                 var updatedProductIds = dto.ProductIds.ToHashSet();
                 foreach (var oldProduct in discount.Products.ToList())
@@ -149,7 +150,6 @@ namespace MinM_API.Services.Implementations
                     foreach (var productVariant in product.ProductVariants)
                     {
                         productVariant.DiscountPrice = CountDiscountPrice(productVariant.Price, discount.DiscountPercentage);
-
                     }
                 }
 
