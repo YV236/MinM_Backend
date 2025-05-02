@@ -8,11 +8,8 @@ namespace MinM_API.Dtos.Products
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public decimal Price { get; set; }
         public List<GetProductVariantDto> ProductVariants { get; set; } = [];
-        public decimal? DiscountPrice { get; set; } // If there is a discount
-        public int UnitsInStock { get; set; }
-        public bool IsStock { get; set; }
+        public string DiscountId { get; set; } = string.Empty;
         public bool? IsSeasonal { get; set; }
         public string CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
