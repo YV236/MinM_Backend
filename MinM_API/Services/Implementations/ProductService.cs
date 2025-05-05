@@ -298,5 +298,10 @@ namespace MinM_API.Services.Implementations
 
             return serviceResponse;
         }
+
+        public Task<ServiceResponse<int>> DeleteProduct(string id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
