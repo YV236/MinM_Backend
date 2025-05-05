@@ -7,8 +7,8 @@ using MinM_API.Services.Interfaces;
 
 namespace MinM_API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class DiscountController(IDiscountService discountService) : ControllerBase
     {
         [HttpPost]
