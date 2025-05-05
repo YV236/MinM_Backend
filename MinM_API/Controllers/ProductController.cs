@@ -45,5 +45,14 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpDelete]
+        [Route("Delete")]
+        public async Task<ActionResult<ServiceResponse<int>>> DeleteProduct(string id)
+        {
+            var response = await productService.DeleteProduct(id);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }

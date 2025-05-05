@@ -299,9 +299,39 @@ namespace MinM_API.Services.Implementations
             return serviceResponse;
         }
 
-        public Task<ServiceResponse<int>> DeleteProduct(string id)
+        public async Task<ServiceResponse<int>> DeleteProduct(string id)
         {
-            throw new NotImplementedException();
+            var serviceResponse = new ServiceResponse<int>();
+
+            try
+            {
+                var productToDelete = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
+
+                if (productToDelete == null)
+                {
+                    serviceResponse.Data = 0;
+                    serviceResponse.IsSuccessful = false;
+                    serviceResponse.Message = "Product not found";
+                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                }
+
+                context.Products.Remove(productToDelete);
+                await context.SaveChangesAsync();
+
+
+                serviceResponse.Data = 1;
+                serviceResponse.IsSuccessful = true;
+                serviceResponse.Message = "Product successfully removed";
+                serviceResponse.StatusCode = HttpStatusCode.OK;
+            }
+            catch(Exception ex)
+            {
+                serviceResponse.Data = 0;
+                serviceResponse.IsSuccessful = false;
+                serviceResponse.Message= ex.Message;
+                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+            }
+            return serviceResponse;
         }
     }
 }
