@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Discount;
@@ -12,6 +13,7 @@ namespace MinM_API.Controllers
     {
         [HttpPost]
         [Route("Create")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ServiceResponse<int>>> AddDiscount(AddDiscountDto discountDto)
         {
             var response = await discountService.AddDiscount(discountDto);
@@ -21,6 +23,7 @@ namespace MinM_API.Controllers
 
         [HttpPut]
         [Route("Update")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ServiceResponse<int>>> UpdateDiscount(UpdateDiscountDto discountDto)
         {
             var response = await discountService.UpdateDiscount(discountDto);
