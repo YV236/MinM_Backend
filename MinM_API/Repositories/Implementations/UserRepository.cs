@@ -11,39 +11,9 @@ namespace MinM_API.Repositories.Implementations
     {
         public async Task<User> FindUser(ClaimsPrincipal userToFind, DataContext context)
         {
-            var id = GetNameIdentifier(userToFind);
+            var id = userToFind.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
             return await context.Users.Include(u => u.Address).FirstOrDefaultAsync(u => u.Id.ToString() == id);
-        }
-
-        public bool IsValidEmail(string email)
-        {
-            var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return Regex.IsMatch(email, emailPattern);
-        }
-
-        public bool AreAllFieldsFilled<T>(T user) where T : class
-        {
-            var properties = user.GetType().GetProperties();
-
-            foreach (var property in properties)
-            {
-                if (property.GetValue(user) is not string value)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private static string GetNameIdentifier(ClaimsPrincipal claimsPrincipal)
-        {
-            return claimsPrincipal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
         }
     }
 }
