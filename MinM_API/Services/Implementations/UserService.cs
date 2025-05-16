@@ -9,6 +9,7 @@ using MinM_API.Repositories.Interfaces;
 using MinM_API.Services.Interfaces;
 using System.Net;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace MinM_API.Services.Implementations
 {
@@ -17,14 +18,14 @@ namespace MinM_API.Services.Implementations
         public async Task<ServiceResponse<int>> Register(UserRegisterDto userRegisterDto)
         {
 
-            if (!userRepository.AreAllFieldsFilled(userRegisterDto))
+            if (!AreAllFieldsFilled(userRegisterDto))
             {
                 return ResponseFactory.Error(0,
                     "Error while registering. Some of the properties may be filled incorrectly",
                     HttpStatusCode.UnprocessableEntity);
             }
 
-            if (!userRepository.IsValidEmail(userRegisterDto.Email))
+            if (!IsValidEmail(userRegisterDto.Email))
             {
                 return ResponseFactory.Error(0,
                     $"Registration failed. The email '{userRegisterDto.Email}' must include '@' and a domain such as '.com' or '.pl'.",
@@ -132,7 +133,7 @@ namespace MinM_API.Services.Implementations
                 return ResponseFactory.Error(new GetUserDto(), "User not found.", HttpStatusCode.NotFound);
             }
 
-            if (!userRepository.AreAllFieldsFilled(userUpdateDto))
+            if (!AreAllFieldsFilled(userUpdateDto))
             {
                 return ResponseFactory.Error(new GetUserDto(),
                     "Error while updating. Some of the properties may be filled incorrectly.",
@@ -180,6 +181,31 @@ namespace MinM_API.Services.Implementations
                 PhoneNumber = getUser.PhoneNumber,
             },
             "The data successfully updated");
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            return Regex.IsMatch(email, emailPattern);
+        }
+
+        private bool AreAllFieldsFilled<T>(T user) where T : class
+        {
+            var properties = user.GetType().GetProperties();
+
+            foreach (var property in properties)
+            {
+                if (property.GetValue(user) is not string value)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
