@@ -16,7 +16,7 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
-                var product = new Models.Product()
+                var product = new Product()
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = addProductDto.Name,
@@ -29,7 +29,7 @@ namespace MinM_API.Services.Implementations
 
                 foreach (var productVariant in addProductDto.ProductVariants)
                 {
-                    product.ProductVariants.Add(new Models.ProductVariant()
+                    product.ProductVariants.Add(new ProductVariant()
                     {
                         Id = Guid.NewGuid().ToString(),
                         Name = productVariant.Name,
@@ -42,7 +42,7 @@ namespace MinM_API.Services.Implementations
                 {
                     foreach (var image in addProductDto.ImageUrls)
                     {
-                        product.ProductImages.Add(new Models.ProductImage()
+                        product.ProductImages.Add(new ProductImage()
                         {
                             Id = Guid.NewGuid().ToString(),
                             ProductId = product.Id,
@@ -246,6 +246,11 @@ namespace MinM_API.Services.Implementations
             {
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
+        }
+
+        public Task<ServiceResponse<GetProductDto>> GetProductBySlug(string slug)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<ServiceResponse<int>> DeleteProduct(string id)
