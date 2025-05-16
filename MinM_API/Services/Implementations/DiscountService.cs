@@ -15,11 +15,9 @@ namespace MinM_API.Services.Implementations
     {
         public async Task<ServiceResponse<int>> AddDiscount(AddDiscountDto dto)
         {
-            var serviceResponse = new ServiceResponse<int>();
-
             try
             {
-                var discount = new Models.Discount
+                var discount = new Discount
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = dto.Name,
@@ -36,11 +34,7 @@ namespace MinM_API.Services.Implementations
 
                 if (productList == null)
                 {
-                    serviceResponse.Data = 0;
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "Product not found";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
                 foreach (var product in productList)
@@ -57,20 +51,12 @@ namespace MinM_API.Services.Implementations
 
                 await context.SaveChangesAsync();
 
-                serviceResponse.Data = 1;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Successful discount creation";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(1, "Successful discount creation");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = 0;
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error(0, "Internal error");
             }
-
-            return serviceResponse;
         }
 
         private static decimal CountDiscountPrice(decimal price, decimal discountPercentage)
@@ -88,8 +74,6 @@ namespace MinM_API.Services.Implementations
 
         public async Task<ServiceResponse<int>> UpdateDiscount(UpdateDiscountDto dto)
         {
-            var serviceResponse = new ServiceResponse<int>();
-
             try
             {
                 var discount = await context.Discounts
@@ -98,9 +82,7 @@ namespace MinM_API.Services.Implementations
 
                 if (discount == null)
                 {
-                    serviceResponse.Message = "Discount not found";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(0, "Discount not found", HttpStatusCode.NotFound);
                 }
 
                 discount.Name = dto.Name;
@@ -133,11 +115,7 @@ namespace MinM_API.Services.Implementations
 
                 if (productList.Count == 0)
                 {
-                    serviceResponse.Data = 0;
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "No products found for provided IDs";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(0, "No products found for provided IDs", HttpStatusCode.NotFound);
                 }
 
                 discount.Products = productList;
@@ -155,38 +133,24 @@ namespace MinM_API.Services.Implementations
 
                 await context.SaveChangesAsync();
 
-                serviceResponse.Data = 1;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Discount successfully updated";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(1, "Discount successfully updated");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = 0;
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error(0, "internal error");
             }
-
-            return serviceResponse;
         }
 
 
         public async Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts()
         {
-            var serviceResponse = new ServiceResponse<List<GetDiscountDto>>();
-
             try
             {
                 var discountList = await context.Discounts.ToListAsync();
 
                 if (discountList == null || discountList.Count == 0)
                 {
-                    serviceResponse.Data = [];
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There are no discounts";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(new List<GetDiscountDto>(), "There are no discounts", HttpStatusCode.NotFound);
                 }
 
                 var getDiscountList = new List<GetDiscountDto>();
@@ -204,26 +168,16 @@ namespace MinM_API.Services.Implementations
                     });
                 }
 
-                serviceResponse.Data = getDiscountList;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Successful extraction of discounts";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(getDiscountList, "Successful extraction of discounts");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = [];
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error(new List<GetDiscountDto>(), "Internal error");
             }
-
-            return serviceResponse;
         }
 
         public async Task<ServiceResponse<GetDiscountDto>> GetDiscountById(string id)
         {
-            var serviceResponse = new ServiceResponse<GetDiscountDto>();
-
             try
             {
                 var discount = await context.Discounts.Include(d => d.Products)
@@ -231,11 +185,7 @@ namespace MinM_API.Services.Implementations
 
                 if (discount == null)
                 {
-                    serviceResponse.Data = null;
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There is no discount with such id";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(new GetDiscountDto(), "There is no discount with such id", HttpStatusCode.NotFound);
                 }
 
                 var getDiscount = new GetDiscountDto
@@ -285,20 +235,12 @@ namespace MinM_API.Services.Implementations
                     getDiscount.Products.Add(dto);
                 }
 
-                serviceResponse.Data = getDiscount;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Successful extraction of discount";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(getDiscount, "Successful extraction of discount");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = new GetDiscountDto();
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error(new GetDiscountDto(), "Internal error");
             }
-
-            return serviceResponse;
         }
     }
 }
