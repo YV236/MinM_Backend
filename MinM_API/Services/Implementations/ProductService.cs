@@ -248,9 +248,29 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public Task<ServiceResponse<GetProductDto>> GetProductBySlug(string slug)
+        public async Task<ServiceResponse<GetProductDto>> GetProductBySlug(string slug)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var product = await context.Products
+                    .Include(p => p.Discount)
+                    .Include(p => p.Season)
+                    .Include(p => p.ProductImages)
+                    .FirstOrDefaultAsync(p => p.Slug == slug);
+
+                if (product == null)
+                {
+                    return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
+                }
+
+                var getProduct = ConvertToDto(product);
+
+                return ResponseFactory.Success(getProduct, "Successful extraction of product by slug");
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Error(new GetProductDto(), "Internal error");
+            }
         }
 
         public async Task<ServiceResponse<int>> DeleteProduct(string id)
