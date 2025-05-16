@@ -289,7 +289,7 @@ namespace MinM_API.Services.Implementations
 
                 return ResponseFactory.Success(1, "Product successfully removed");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return ResponseFactory.Error(0, "Internal error");
             }

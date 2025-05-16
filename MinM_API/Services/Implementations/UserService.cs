@@ -183,13 +183,13 @@ namespace MinM_API.Services.Implementations
             "The data successfully updated");
         }
 
-        private bool IsValidEmail(string email)
+        private static bool IsValidEmail(string email)
         {
             var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             return Regex.IsMatch(email, emailPattern);
         }
 
-        private bool AreAllFieldsFilled<T>(T user) where T : class
+        private static bool AreAllFieldsFilled<T>(T user) where T : class
         {
             var properties = user.GetType().GetProperties();
 
