@@ -3,11 +3,6 @@
     public record UpdateUserDto(
         string UserFirstName,
         string UserLastName,
-        string Street,
-        string HomeNumber,
-        string City,
-        string Region,
-        string PostalCode,
-        string Country,
-        string PhoneNumber);
+        string PhoneNumber,
+        AddressDto AddressDto);
 }

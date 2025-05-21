@@ -59,7 +59,7 @@ namespace MinM_API.Data
 
             builder.Entity<WishlistItem>()
                 .HasOne(w => w.User)
-                .WithMany(u => u.WhishList)
+                .WithMany(u => u.WishList)
                 .HasForeignKey(w => w.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
