@@ -50,6 +50,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
 
 builder.Services.AddSingleton<ProductMapper>();
+builder.Services.AddSingleton<UserMapper>();
 
 builder.Services.AddCors(options =>
 {
