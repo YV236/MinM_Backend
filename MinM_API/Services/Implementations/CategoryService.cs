@@ -3,6 +3,7 @@ using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Category;
 using MinM_API.Extension;
+using MinM_API.Mappers;
 using MinM_API.Migrations;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
@@ -10,35 +11,26 @@ using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class CategoryService(DataContext context) : ICategoryService
+    public class CategoryService(DataContext context, CategoryMapper mapper) : ICategoryService
     {
         public async Task<ServiceResponse<List<GetCategoryDto>>> GetAllCategory()
         {
             try
             {
-                var unsortedCategoryList = await context.Categories!.ToListAsync();
+                var CategoryList = await context.Categories!
+                    .OrderBy(c=>c.Name)
+                    .ToListAsync();
 
-                if (unsortedCategoryList == null || unsortedCategoryList.Count == 0)
+                if (CategoryList == null || CategoryList.Count == 0)
                 {
                     return ResponseFactory.Error(new List<GetCategoryDto>(), "There are no categories", HttpStatusCode.NotFound);
                 }
 
-                var sortedCategories = unsortedCategoryList
-                    .OrderBy(c => c.Name)
-                    .ToList();
-
                 var getCategoryDtoList = new List<GetCategoryDto>();
 
-                foreach (var category in sortedCategories)
+                foreach (var category in CategoryList)
                 {
-                    var getCategory = new GetCategoryDto()
-                    {
-                        Id = category.Id,
-                        Name = category.Name,
-                        Slug = category.Slug,
-                        Description = category.Description!,
-                        ParentCategoryId = category.ParentCategoryId,
-                    };
+                    var getCategory = mapper.CategoryToGetCategoryDto(category);
 
                     getCategoryDtoList.Add(getCategory);
                 }
@@ -67,13 +59,7 @@ namespace MinM_API.Services.Implementations
                 context.Categories.Add(category);
                 await context.SaveChangesAsync();
 
-                var getCategoryDto = new GetCategoryDto()
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    Description = category.Description,
-                    ParentCategoryId = category.ParentCategoryId,
-                };
+                var getCategoryDto = mapper.CategoryToGetCategoryDto(category);
 
                 return ResponseFactory.Success(getCategoryDto, "Category successfully created");
             }
@@ -106,22 +92,14 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetCategoryDto(), "There is no category to be parent with such id", HttpStatusCode.NotFound);
                 }
 
-                category!.Name = categoryDto.Name;
+                mapper.UpdateCategoryDtoToCategory(categoryDto, category);
                 category.Slug = SlugExtension.GenerateSlug(categoryDto.Name);
-                category.Description = categoryDto.Description;
-                category.ParentCategoryId = categoryDto.ParentCategoryId;
 
                 context.Categories.Update(category);
 
                 await context.SaveChangesAsync();
 
-                var getCategoryDto = new GetCategoryDto()
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    Description = category.Description,
-                    ParentCategoryId = category.ParentCategoryId,
-                };
+                var getCategoryDto = mapper.CategoryToGetCategoryDto(category);
 
                 return ResponseFactory.Success(getCategoryDto, "Category successfully updated");
             }
