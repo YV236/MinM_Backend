@@ -4,6 +4,7 @@ using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.User;
 using MinM_API.Extension;
+using MinM_API.Mappers;
 using MinM_API.Models;
 using MinM_API.Repositories.Interfaces;
 using MinM_API.Services.Interfaces;
@@ -13,7 +14,7 @@ using System.Text.RegularExpressions;
 
 namespace MinM_API.Services.Implementations
 {
-    public class UserService(IUserRepository userRepository, UserManager<User> userManager, DataContext context) : IUserService
+    public class UserService(IUserRepository userRepository, UserManager<User> userManager, DataContext context, UserMapper mapper) : IUserService
     {
         public async Task<ServiceResponse<int>> Register(UserRegisterDto userRegisterDto)
         {
@@ -53,12 +54,12 @@ namespace MinM_API.Services.Implementations
                     Address = new Models.Address
                     {
                         Id = Guid.NewGuid().ToString(),
-                        Street = userRegisterDto.Street,
-                        HomeNumber = userRegisterDto.HomeNumber,
-                        City = userRegisterDto.City,
-                        Region = userRegisterDto.Region,
-                        PostalCode = userRegisterDto.PostalCode,
-                        Country = userRegisterDto.Country,
+                        Street = userRegisterDto.AddressDto.Street,
+                        HomeNumber = userRegisterDto.AddressDto.HomeNumber,
+                        City = userRegisterDto.AddressDto.City,
+                        Region = userRegisterDto.AddressDto.Region,
+                        PostalCode = userRegisterDto.AddressDto.PostalCode,
+                        Country = userRegisterDto.AddressDto.Country,
                     }
                 };
 
@@ -97,24 +98,7 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetUserDto(), "Unable to find the user.", HttpStatusCode.NotFound);
                 }
 
-                var userDto = new GetUserDto()
-                {
-                    UserName = getUser.UserName!,
-                    Slug = getUser.Slug,
-                    UserFirstName = getUser.UserFirstName ?? "",
-                    UserLastName = getUser.UserLastName ?? "",
-                    Email = getUser.Email,
-                    Address = new Dtos.Address()
-                    {
-                        Street = getUser.Address?.Street ?? "",
-                        HomeNumber = getUser.Address?.HomeNumber ?? "",
-                        City = getUser.Address?.City ?? "",
-                        Region = getUser.Address?.Region ?? "",
-                        PostalCode = getUser.Address?.PostalCode ?? "",
-                        Country = getUser.Address?.Country ?? "",
-                    },
-                    PhoneNumber = getUser.PhoneNumber,
-                };
+                var userDto = mapper.UserToGetUserDto(getUser);
 
                 return ResponseFactory.Success(userDto);
             }
@@ -147,39 +131,14 @@ namespace MinM_API.Services.Implementations
                     HttpStatusCode.UnprocessableEntity);
             }
 
-            getUser.UserFirstName = userUpdateDto.UserFirstName;
-            getUser.UserLastName = userUpdateDto.UserLastName;
-            getUser.PhoneNumber = userUpdateDto.PhoneNumber;
-
-            getUser.Address ??= new Models.Address();
-
-            getUser.Address.Street = userUpdateDto.Street;
-            getUser.Address.HomeNumber = userUpdateDto.HomeNumber;
-            getUser.Address.City = userUpdateDto.City;
-            getUser.Address.Region = userUpdateDto.Region;
-            getUser.Address.PostalCode = userUpdateDto.PostalCode;
-            getUser.Address.Country = userUpdateDto.Country;
+            mapper.UpdateUserDtoToUserModel(userUpdateDto, getUser);
+            mapper.UpdateAddressDtoToAddress(userUpdateDto.AddressDto, getUser.Address);
 
             context.Users.Update(getUser);
 
             await context.SaveChangesAsync();
 
-            return ResponseFactory.Success(new GetUserDto()
-            {
-                UserFirstName = getUser.UserFirstName,
-                UserLastName = getUser.UserLastName,
-                Email = getUser.Email,
-                Address = new Dtos.Address()
-                {
-                    Street = getUser.Address!.Street,
-                    HomeNumber = getUser.Address!.HomeNumber,
-                    City = getUser.Address!.City,
-                    Region = getUser.Address!.Region,
-                    PostalCode = getUser.Address!.PostalCode,
-                    Country = getUser.Address!.Country,
-                },
-                PhoneNumber = getUser.PhoneNumber,
-            },
+            return ResponseFactory.Success(mapper.UserToGetUserDto(getUser),
             "The data successfully updated");
         }
 
