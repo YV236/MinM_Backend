@@ -52,6 +52,7 @@ builder.Services.AddScoped<IDiscountService, DiscountService>();
 builder.Services.AddSingleton<ProductMapper>();
 builder.Services.AddSingleton<UserMapper>();
 builder.Services.AddSingleton<CategoryMapper>();
+builder.Services.AddSingleton<DiscountMapper>();
 
 builder.Services.AddCors(options =>
 {
