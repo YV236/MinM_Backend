@@ -4,13 +4,14 @@ using MinM_API.Dtos;
 using MinM_API.Dtos.Products;
 using MinM_API.Dtos.ProductVariant;
 using MinM_API.Extension;
+using MinM_API.Mappers;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class ProductService(DataContext context) : IProductService
+    public class ProductService(DataContext context, ProductMapper mapper) : IProductService
     {
         public async Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto)
         {
@@ -174,7 +175,7 @@ namespace MinM_API.Services.Implementations
 
                 foreach (var product in productsList)
                 {
-                    getProductsList.Add(ConvertToDto(product));
+                    getProductsList.Add(mapper.ProductToGetProductDto(product));
                 }
 
                 return ResponseFactory.Success(getProductsList, "Successful extraction of products");
@@ -183,44 +184,6 @@ namespace MinM_API.Services.Implementations
             {
                 return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
             }
-        }
-
-        private static GetProductDto ConvertToDto(Product product)
-        {
-            var dto = new GetProductDto()
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Slug = product.Slug,
-                Description = product.Description,
-                IsSeasonal = product.IsSeasonal,
-                CategoryId = product.CategoryId,
-                CategoryName = product.Category.Name,
-                SKU = product.SKU,
-            };
-
-            foreach (var image in product.ProductImages)
-            {
-                dto.ImageUrls.Add(new GetProductImageDto()
-                {
-                    FilePath = image.FilePath,
-                });
-            }
-
-            foreach (var variant in product.ProductVariants)
-            {
-                dto.ProductVariants.Add(new GetProductVariantDto()
-                {
-                    Id = variant.Id,
-                    Name = variant.Name,
-                    Price = variant.Price,
-                    DiscountPrice = variant.DiscountPrice,
-                    UnitsInStock = variant.UnitsInStock,
-                    IsStock = variant.IsStock,
-                });
-            }
-
-            return dto;
         }
 
         public async Task<ServiceResponse<GetProductDto>> GetProductById(string id)
@@ -238,7 +201,7 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
                 }
 
-                var getProduct = ConvertToDto(product);
+                var getProduct = mapper.ProductToGetProductDto(product);
 
                 return ResponseFactory.Success(getProduct, "Successful extraction of product by id");
             }
@@ -263,7 +226,7 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
                 }
 
-                var getProduct = ConvertToDto(product);
+                var getProduct = mapper.ProductToGetProductDto(product);
 
                 return ResponseFactory.Success(getProduct, "Successful extraction of product by slug");
             }
