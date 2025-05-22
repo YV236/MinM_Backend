@@ -11,7 +11,7 @@ using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class ProductService(DataContext context, ProductMapper mapper) : IProductService
+    public class ProductService(DataContext context, ProductMapper mapper, ILogger<ProductService> logger) : IProductService
     {
         public async Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto)
         {
@@ -60,12 +60,18 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message, addProductDto);
                 return ResponseFactory.Error("", "Internal error");
             }
         }
 
         public async Task<ServiceResponse<int>> UpdateProduct(UpdateProductDto updateProductDto)
         {
+            if (!await context.Categories.AnyAsync(c => c.Id == updateProductDto.CategoryId))
+            {
+                return ResponseFactory.Error(0, "No Category with specified id where found", HttpStatusCode.NotFound);
+            }
+
             try
             {
                 var product = await context.Products
@@ -132,7 +138,9 @@ namespace MinM_API.Services.Implementations
                         {
                             existing.Name = variantDto.Name;
                             existing.Price = variantDto.Price;
-                            existing.DiscountPrice = DiscountExtension.CountDiscountPrice(variantDto.Price, discount!.DiscountPercentage);
+                            existing.DiscountPrice = discount != null
+                                ? DiscountExtension.CountDiscountPrice(variantDto.Price, discount.DiscountPercentage) : 0;
+
                             existing.UnitsInStock = variantDto.UnitsInStock;
                             existing.IsStock = variantDto.IsStock;
                         }
@@ -145,7 +153,8 @@ namespace MinM_API.Services.Implementations
                             ProductId = product.Id,
                             Name = variantDto.Name,
                             Price = variantDto.Price,
-                            DiscountPrice = DiscountExtension.CountDiscountPrice(variantDto.Price, discount!.DiscountPercentage),
+                            DiscountPrice = discount != null
+                            ? DiscountExtension.CountDiscountPrice(variantDto.Price, discount.DiscountPercentage) : 0,
                             UnitsInStock = variantDto.UnitsInStock,
                             IsStock = variantDto.IsStock
                         });
@@ -158,6 +167,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message, updateProductDto.Id);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
@@ -188,6 +198,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message);
                 return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
             }
         }
@@ -213,6 +224,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message, id);
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
         }
@@ -238,6 +250,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message);
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
         }
@@ -260,6 +273,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message, id);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
