@@ -36,6 +36,7 @@ namespace MinM_API.Services.Implementations
                         Name = productVariant.Name,
                         Price = productVariant.Price,
                         UnitsInStock = productVariant.UnitsInStock,
+                        IsStock = productVariant.IsStock,
                     });
                 }
 
@@ -69,6 +70,7 @@ namespace MinM_API.Services.Implementations
             {
                 var product = await context.Products
                     .Include(p => p.ProductImages)
+                    .Include(p => p.ProductVariants)
                     .FirstOrDefaultAsync(p => p.Id == updateProductDto.Id);
 
                 if (product == null)
@@ -119,6 +121,8 @@ namespace MinM_API.Services.Implementations
                     context.ProductVariants.Remove(variant);
                 }
 
+                var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == product.DiscountId);
+
                 foreach (var variantDto in dtoVariants)
                 {
                     if (!string.IsNullOrEmpty(variantDto.Id))
@@ -128,6 +132,7 @@ namespace MinM_API.Services.Implementations
                         {
                             existing.Name = variantDto.Name;
                             existing.Price = variantDto.Price;
+                            existing.DiscountPrice = DiscountExtension.CountDiscountPrice(variantDto.Price, discount!.DiscountPercentage);
                             existing.UnitsInStock = variantDto.UnitsInStock;
                             existing.IsStock = variantDto.IsStock;
                         }
@@ -140,6 +145,7 @@ namespace MinM_API.Services.Implementations
                             ProductId = product.Id,
                             Name = variantDto.Name,
                             Price = variantDto.Price,
+                            DiscountPrice = DiscountExtension.CountDiscountPrice(variantDto.Price, discount!.DiscountPercentage),
                             UnitsInStock = variantDto.UnitsInStock,
                             IsStock = variantDto.IsStock
                         });

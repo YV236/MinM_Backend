@@ -46,7 +46,7 @@ namespace MinM_API.Services.Implementations
 
                     foreach (var productVariant in product.ProductVariants)
                     {
-                        productVariant.DiscountPrice = CountDiscountPrice(productVariant.Price, discount.DiscountPercentage);
+                        productVariant.DiscountPrice = DiscountExtension.CountDiscountPrice(productVariant.Price, discount.DiscountPercentage);
                     }
                 }
 
@@ -58,19 +58,6 @@ namespace MinM_API.Services.Implementations
             {
                 return ResponseFactory.Error(0, "Internal error");
             }
-        }
-
-        private static decimal CountDiscountPrice(decimal price, decimal discountPercentage)
-        {
-            var whole = Math.Floor(price);
-
-            var fractional = price - whole;
-
-            decimal discountedPrice = whole - (whole * (discountPercentage / 100));
-
-            discountedPrice = Math.Floor(discountedPrice);
-
-            return discountedPrice + fractional;
         }
 
         public async Task<ServiceResponse<int>> UpdateDiscount(UpdateDiscountDto dto)
@@ -108,7 +95,7 @@ namespace MinM_API.Services.Implementations
                     product.IsDiscounted = true;
                     foreach (var productVariant in product.ProductVariants)
                     {
-                        productVariant.DiscountPrice = CountDiscountPrice(productVariant.Price, discount.DiscountPercentage);
+                        productVariant.DiscountPrice = DiscountExtension.CountDiscountPrice(productVariant.Price, discount.DiscountPercentage);
                     }
                 }
 
