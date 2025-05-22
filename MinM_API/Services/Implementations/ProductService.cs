@@ -4,21 +4,20 @@ using MinM_API.Dtos;
 using MinM_API.Dtos.Products;
 using MinM_API.Dtos.ProductVariant;
 using MinM_API.Extension;
+using MinM_API.Mappers;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class ProductService(DataContext context) : IProductService
+    public class ProductService(DataContext context, ProductMapper mapper) : IProductService
     {
         public async Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto)
         {
-            var serviceResponse = new ServiceResponse<string>();
-
             try
             {
-                var product = new Models.Product()
+                var product = new Product()
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = addProductDto.Name,
@@ -31,12 +30,13 @@ namespace MinM_API.Services.Implementations
 
                 foreach (var productVariant in addProductDto.ProductVariants)
                 {
-                    product.ProductVariants.Add(new Models.ProductVariant()
+                    product.ProductVariants.Add(new ProductVariant()
                     {
                         Id = Guid.NewGuid().ToString(),
                         Name = productVariant.Name,
                         Price = productVariant.Price,
                         UnitsInStock = productVariant.UnitsInStock,
+                        IsStock = productVariant.IsStock,
                     });
                 }
 
@@ -44,7 +44,7 @@ namespace MinM_API.Services.Implementations
                 {
                     foreach (var image in addProductDto.ImageUrls)
                     {
-                        product.ProductImages.Add(new Models.ProductImage()
+                        product.ProductImages.Add(new ProductImage()
                         {
                             Id = Guid.NewGuid().ToString(),
                             ProductId = product.Id,
@@ -56,37 +56,26 @@ namespace MinM_API.Services.Implementations
                 context.Products.Add(product);
                 await context.SaveChangesAsync();
 
-                serviceResponse.Data = product.Id;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Product successfully added";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(product.Id, "Product successfully added");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = null;
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error("", "Internal error");
             }
-
-            return serviceResponse;
         }
 
         public async Task<ServiceResponse<int>> UpdateProduct(UpdateProductDto updateProductDto)
         {
-            var serviceResponse = new ServiceResponse<int>();
-
             try
             {
                 var product = await context.Products
                     .Include(p => p.ProductImages)
+                    .Include(p => p.ProductVariants)
                     .FirstOrDefaultAsync(p => p.Id == updateProductDto.Id);
 
                 if (product == null)
                 {
-                    serviceResponse.Message = "Product not found";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
                 product.Name = updateProductDto.Name;
@@ -132,6 +121,8 @@ namespace MinM_API.Services.Implementations
                     context.ProductVariants.Remove(variant);
                 }
 
+                var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == product.DiscountId);
+
                 foreach (var variantDto in dtoVariants)
                 {
                     if (!string.IsNullOrEmpty(variantDto.Id))
@@ -141,6 +132,7 @@ namespace MinM_API.Services.Implementations
                         {
                             existing.Name = variantDto.Name;
                             existing.Price = variantDto.Price;
+                            existing.DiscountPrice = DiscountExtension.CountDiscountPrice(variantDto.Price, discount!.DiscountPercentage);
                             existing.UnitsInStock = variantDto.UnitsInStock;
                             existing.IsStock = variantDto.IsStock;
                         }
@@ -153,6 +145,7 @@ namespace MinM_API.Services.Implementations
                             ProductId = product.Id,
                             Name = variantDto.Name,
                             Price = variantDto.Price,
+                            DiscountPrice = DiscountExtension.CountDiscountPrice(variantDto.Price, discount!.DiscountPercentage),
                             UnitsInStock = variantDto.UnitsInStock,
                             IsStock = variantDto.IsStock
                         });
@@ -161,26 +154,16 @@ namespace MinM_API.Services.Implementations
 
                 await context.SaveChangesAsync();
 
-                serviceResponse.Data = 1;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Product successfully updated";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(1, "Product successfully updated");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = 0;
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error(0, "Internal error");
             }
-
-            return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<GetProductDto>>> GetAllProducts()
         {
-            var serviceResponse = new ServiceResponse<List<GetProductDto>>();
-
             try
             {
                 var productsList = await context.Products
@@ -191,78 +174,26 @@ namespace MinM_API.Services.Implementations
 
                 if (productsList == null || productsList.Count == 0)
                 {
-                    serviceResponse.Data = [];
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There are no products";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(new List<GetProductDto>(), "There are no products", HttpStatusCode.NotFound);
                 }
 
                 var getProductsList = new List<GetProductDto>();
 
                 foreach (var product in productsList)
                 {
-                    getProductsList.Add(ConvertToDto(product));
+                    getProductsList.Add(mapper.ProductToGetProductDto(product));
                 }
 
-                serviceResponse.Data = getProductsList;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Successful extraction of products";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(getProductsList, "Successful extraction of products");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = [];
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
             }
-
-            return serviceResponse;
-        }
-
-        private static GetProductDto ConvertToDto(Product product)
-        {
-            var dto = new GetProductDto()
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Slug = product.Slug,
-                Description = product.Description,
-                IsSeasonal = product.IsSeasonal,
-                CategoryId = product.CategoryId,
-                CategoryName = product.Category.Name,
-                SKU = product.SKU,
-            };
-
-            foreach (var image in product.ProductImages)
-            {
-                dto.ImageUrls.Add(new GetProductImageDto()
-                {
-                    FilePath = image.FilePath,
-                });
-            }
-
-            foreach (var variant in product.ProductVariants)
-            {
-                dto.ProductVariants.Add(new GetProductVariantDto()
-                {
-                    Id = variant.Id,
-                    Name = variant.Name,
-                    Price = variant.Price,
-                    DiscountPrice = variant.DiscountPrice,
-                    UnitsInStock = variant.UnitsInStock,
-                    IsStock = variant.IsStock,
-                });
-            }
-
-            return dto;
         }
 
         public async Task<ServiceResponse<GetProductDto>> GetProductById(string id)
         {
-            var serviceResponse = new ServiceResponse<GetProductDto>();
-
             try
             {
                 var product = await context.Products
@@ -273,65 +204,64 @@ namespace MinM_API.Services.Implementations
 
                 if (product == null)
                 {
-                    serviceResponse.Data = new GetProductDto();
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There are no products";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
                 }
 
-                var getProduct = ConvertToDto(product);
+                var getProduct = mapper.ProductToGetProductDto(product);
 
-                serviceResponse.Data = getProduct;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Successful extraction of product by id";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(getProduct, "Successful extraction of product by id");
             }
             catch (Exception ex)
             {
-
-                serviceResponse.Data = new GetProductDto();
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
+        }
 
-            return serviceResponse;
+        public async Task<ServiceResponse<GetProductDto>> GetProductBySlug(string slug)
+        {
+            try
+            {
+                var product = await context.Products
+                    .Include(p => p.Discount)
+                    .Include(p => p.Season)
+                    .Include(p => p.ProductImages)
+                    .FirstOrDefaultAsync(p => p.Slug == slug);
+
+                if (product == null)
+                {
+                    return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
+                }
+
+                var getProduct = mapper.ProductToGetProductDto(product);
+
+                return ResponseFactory.Success(getProduct, "Successful extraction of product by slug");
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Error(new GetProductDto(), "Internal error");
+            }
         }
 
         public async Task<ServiceResponse<int>> DeleteProduct(string id)
         {
-            var serviceResponse = new ServiceResponse<int>();
-
             try
             {
                 var productToDelete = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
 
                 if (productToDelete == null)
                 {
-                    serviceResponse.Data = 0;
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "Product not found";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
+                    return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
                 context.Products.Remove(productToDelete);
                 await context.SaveChangesAsync();
 
-
-                serviceResponse.Data = 1;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Product successfully removed";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
+                return ResponseFactory.Success(1, "Product successfully removed");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                serviceResponse.Data = 0;
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message= ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
+                return ResponseFactory.Error(0, "Internal error");
             }
-            return serviceResponse;
         }
     }
 }

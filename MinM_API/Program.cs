@@ -8,6 +8,7 @@ using MinM_API.Repositories.Interfaces;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
 using MinM_API.Extension;
+using MinM_API.Mappers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
+
+builder.Services.AddSingleton<ProductMapper>();
+builder.Services.AddSingleton<UserMapper>();
+builder.Services.AddSingleton<CategoryMapper>();
+builder.Services.AddSingleton<DiscountMapper>();
 
 builder.Services.AddCors(options =>
 {
