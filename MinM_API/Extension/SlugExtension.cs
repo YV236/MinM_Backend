@@ -1,9 +1,11 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 
-public static class SlugExtension
+namespace MinM_API.Extension;
+
+public static partial class SlugExtension
 {
-    private static readonly Dictionary<char, string> ConvertedLetters = new Dictionary<char, string>
+    private static readonly Dictionary<char, string> ConvertedLetters = new()
     {
         ['а'] = "a",
         ['б'] = "b",
@@ -74,15 +76,21 @@ public static class SlugExtension
         ['Я'] = "Ia"
     };
 
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex WhitespaceRegex();
+
+    [GeneratedRegex(@"[^a-z0-9\-]")]
+    private static partial Regex InvalidSlugCharsRegex();
+
     public static string GenerateSlug(string input)
     {
         string transliterated = TransliterateCyrillicToLatin(input);
 
         transliterated = transliterated.ToLowerInvariant();
 
-        transliterated = Regex.Replace(transliterated, @"\s+", "-");
+        transliterated = WhitespaceRegex().Replace(transliterated, "-");
 
-        transliterated = Regex.Replace(transliterated, @"[^a-z0-9\-]", "");
+        transliterated = InvalidSlugCharsRegex().Replace(transliterated, "");
 
         return transliterated.Trim('-');
     }
@@ -93,7 +101,14 @@ public static class SlugExtension
 
         foreach (char c in input)
         {
-            result.Append(ConvertedLetters.ContainsKey(c) ? ConvertedLetters[c] : c.ToString());
+            if (ConvertedLetters.TryGetValue(c, out var converted))
+            {
+                result.Append(converted);
+            }
+            else
+            {
+                result.Append(c);
+            }
         }
 
         return result.ToString();

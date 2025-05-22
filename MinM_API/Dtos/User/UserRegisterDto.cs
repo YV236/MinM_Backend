@@ -4,12 +4,7 @@
         string UserFirstName,
         string UserLastName,
         string Email,
-        string Street,
-        string HomeNumber,
-        string City,
-        string? Region,
-        string? PostalCode,
-        string Country,
+        AddressDto AddressDto,
         string Password,
         string PhoneNumber);
 }

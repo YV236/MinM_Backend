@@ -3,6 +3,7 @@ using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Category;
 using MinM_API.Extension;
+using MinM_API.Mappers;
 using MinM_API.Migrations;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
@@ -10,66 +11,40 @@ using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class CategoryService(DataContext context) : ICategoryService
+    public class CategoryService(DataContext context, CategoryMapper mapper) : ICategoryService
     {
         public async Task<ServiceResponse<List<GetCategoryDto>>> GetAllCategory()
         {
-            var serviceResponse = new ServiceResponse<List<GetCategoryDto>>();
-
             try
             {
-                var unsortedCategoryList = await context.Categories!.ToListAsync();
+                var CategoryList = await context.Categories!
+                    .OrderBy(c=>c.Name)
+                    .ToListAsync();
 
-                if (unsortedCategoryList == null || unsortedCategoryList.Count == 0)
+                if (CategoryList == null || CategoryList.Count == 0)
                 {
-                    serviceResponse.Data = [];
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There are no categories";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(new List<GetCategoryDto>(), "There are no categories", HttpStatusCode.NotFound);
                 }
-
-                var sortedCategories = unsortedCategoryList
-                    .OrderBy(c => c.Name)
-                    .ToList();
 
                 var getCategoryDtoList = new List<GetCategoryDto>();
 
-                foreach (var category in sortedCategories)
+                foreach (var category in CategoryList)
                 {
-                    var getCategory = new GetCategoryDto()
-                    {
-                        Id = category.Id,
-                        Name = category.Name,
-                        Slug = category.Slug,
-                        Description = category.Description!,
-                        ParentCategoryId = category.ParentCategoryId,
-                    };
+                    var getCategory = mapper.CategoryToGetCategoryDto(category);
 
                     getCategoryDtoList.Add(getCategory);
                 }
 
-                serviceResponse.Data = getCategoryDtoList;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Successful extraction of categories";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
-
-                return serviceResponse;
+                return ResponseFactory.Success(getCategoryDtoList, "Successful extraction of categories");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = [];
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
-                return serviceResponse;
+                return ResponseFactory.Error(new List<GetCategoryDto>(), "Internal error");
             }
         }
 
         public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto categoryDto)
         {
-            var serviceResponse = new ServiceResponse<GetCategoryDto>();
-
             try
             {
                 var category = new Category()
@@ -84,102 +59,58 @@ namespace MinM_API.Services.Implementations
                 context.Categories.Add(category);
                 await context.SaveChangesAsync();
 
-                var getCategoryDto = new GetCategoryDto()
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    Description = category.Description,
-                    ParentCategoryId = category.ParentCategoryId,
-                };
+                var getCategoryDto = mapper.CategoryToGetCategoryDto(category);
 
-                serviceResponse.Data = getCategoryDto;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Category successfully created";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
-
-                return serviceResponse;
+                return ResponseFactory.Success(getCategoryDto, "Category successfully created");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = new GetCategoryDto();
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
-                return serviceResponse;
+                return ResponseFactory.Error(new GetCategoryDto(), "Internal error");
             }
         }
 
         public async Task<ServiceResponse<GetCategoryDto>> UpdateCategory(UpdateCategoryDto categoryDto)
         {
-            var serviceResponse = new ServiceResponse<GetCategoryDto>();
-
             try
             {
                 var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == categoryDto.Id);
 
                 if (category == null)
                 {
-                    serviceResponse.Data = new GetCategoryDto();
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There is no category with such id";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(new GetCategoryDto(), "There is no category with such id", HttpStatusCode.NotFound);
                 }
 
                 if (category.Id == categoryDto.ParentCategoryId)
                 {
-                    throw new Exception("You cannot provide the same Id as the Parent Id for this category");
+                    return ResponseFactory.Error(new GetCategoryDto(), "You cannot provide the same Id as the Parent Id for this category");
                 }
 
                 var parentCategory = await context.Categories.FirstOrDefaultAsync(c => c.Id == categoryDto.ParentCategoryId);
 
                 if (categoryDto.ParentCategoryId != null && parentCategory == null)
                 {
-                    serviceResponse.Data = new GetCategoryDto();
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There is no category to be parent with such id";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(new GetCategoryDto(), "There is no category to be parent with such id", HttpStatusCode.NotFound);
                 }
 
-                category!.Name = categoryDto.Name;
+                mapper.UpdateCategoryDtoToCategory(categoryDto, category);
                 category.Slug = SlugExtension.GenerateSlug(categoryDto.Name);
-                category.Description = categoryDto.Description;
-                category.ParentCategoryId = categoryDto.ParentCategoryId;
 
                 context.Categories.Update(category);
 
                 await context.SaveChangesAsync();
 
-                var getCategoryDto = new GetCategoryDto()
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    Description = category.Description,
-                    ParentCategoryId = category.ParentCategoryId,
-                };
+                var getCategoryDto = mapper.CategoryToGetCategoryDto(category);
 
-                serviceResponse.Data = getCategoryDto;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Category successfully updated";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
-
-                return serviceResponse;
+                return ResponseFactory.Success(getCategoryDto, "Category successfully updated");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = new GetCategoryDto();
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
-                return serviceResponse;
+                return ResponseFactory.Error(new GetCategoryDto(), "Internal error");
             }
         }
 
         public async Task<ServiceResponse<int>> DeleteCategory(DeleteCategoryDto categoryDto)
         {
-            var serviceResponse = new ServiceResponse<int>();
-
             try
             {
                 var category = await context.Categories
@@ -188,11 +119,7 @@ namespace MinM_API.Services.Implementations
 
                 if (category == null)
                 {
-                    serviceResponse.Data = 0;
-                    serviceResponse.IsSuccessful = false;
-                    serviceResponse.Message = "There is no category with such id";
-                    serviceResponse.StatusCode = HttpStatusCode.NotFound;
-                    return serviceResponse;
+                    return ResponseFactory.Error(0, "There is no category with such id", HttpStatusCode.NotFound);
                 }
 
                 if (category.ParentCategoryId == null && categoryDto.Option == DeleteOption.ReassignToParent)
@@ -225,19 +152,11 @@ namespace MinM_API.Services.Implementations
                 context.Categories.Remove(category);
                 await context.SaveChangesAsync();
 
-                serviceResponse.Data = 1;
-                serviceResponse.IsSuccessful = true;
-                serviceResponse.Message = "Category successfully removed";
-                serviceResponse.StatusCode = HttpStatusCode.OK;
-                return serviceResponse;
+                return ResponseFactory.Success(1, "Category successfully removed");
             }
             catch (Exception ex)
             {
-                serviceResponse.Data = 0;
-                serviceResponse.IsSuccessful = false;
-                serviceResponse.Message = ex.Message;
-                serviceResponse.StatusCode = HttpStatusCode.BadRequest;
-                return serviceResponse;
+                return ResponseFactory.Error(0, "Internal error");
             }
         }
     }
