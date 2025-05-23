@@ -58,7 +58,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Failed to add discount. Name: {DiscountName}", dto.Name);
+                logger.LogError(ex, "Fail: Error while adding discount. Name: {DiscountName}", dto.Name);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
@@ -129,7 +129,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Failed to update discount. Name: {DiscountName}", dto.Name);
+                logger.LogError(ex, "Fail: Error while updating discount. Name: {DiscountName}", dto.Name);
                 return ResponseFactory.Error(0, "internal error");
             }
         }
@@ -157,7 +157,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Failed to retrieve discounts from database");
+                logger.LogError(ex, "Fail: Error while retrieving discounts from database");
                 return ResponseFactory.Error(new List<GetDiscountDto>(), "Internal error");
             }
         }
@@ -180,7 +180,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Failed to retrieve discount from database with such id. Id: {Id}", id);
+                logger.LogError(ex, "Fail: Error while retrieving discount from database with such id. Id: {Id}", id);
                 return ResponseFactory.Error(new GetDiscountDto(), "Internal error");
             }
         }

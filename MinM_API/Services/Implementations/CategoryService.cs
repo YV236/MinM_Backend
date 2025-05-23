@@ -36,7 +36,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Failed to retrieve categories from database");
+                logger.LogError(ex, "Fail: Error while retrieving categories from database");
                 return ResponseFactory.Error(new List<GetCategoryDto>(), "Internal error");
             }
         }
@@ -63,7 +63,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Failed to add category. Name: {CategoryName}", categoryDto.Name);
+                logger.LogError(ex, "Fail: Error while adding category. Name: {CategoryName}", categoryDto.Name);
                 return ResponseFactory.Error(new GetCategoryDto(), "Internal error");
             }
         }
@@ -108,7 +108,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Failed to update category. Name: {CategoryName}, Id: {CategoryId}",
+                logger.LogError(ex, "Fail: Error updating category. Name: {CategoryName}, Id: {CategoryId}",
                     categoryDto.Name, categoryDto.Id);
                 return ResponseFactory.Error(new GetCategoryDto(), "Internal error");
             }
@@ -162,7 +162,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Failed to delete category. CategoryId: {CategoryId}", categoryDto.CategoryId);
+                logger.LogError(ex, "Fail: Error while deleting category. CategoryId: {CategoryId}", categoryDto.CategoryId);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }

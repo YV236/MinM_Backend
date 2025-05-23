@@ -60,7 +60,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to add product. Name: {ProductName}, CategoryId: {CategoryId}",
+                logger.LogError(ex, "Fail: Error while adding product. Name: {ProductName}, CategoryId: {CategoryId}",
                     addProductDto.Name, addProductDto.CategoryId);
                 return ResponseFactory.Error("", "Internal error");
             }
@@ -168,7 +168,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to update product. Name: {ProductName}, CategoryId: {CategoryId}",
+                logger.LogError(ex, "Fail: Error while updating product. Name: {ProductName}, CategoryId: {CategoryId}",
                     updateProductDto.Name, updateProductDto.CategoryId);
                 return ResponseFactory.Error(0, "Internal error");
             }
@@ -203,7 +203,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to retrieve products from database");
+                logger.LogError(ex, "Fail: Error while to retrieving products from database");
                 return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
             }
         }
@@ -230,7 +230,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to retrieve {Id} from database", id);
+                logger.LogError(ex, "Fail: Error while retrieving product from database with such id. Id: {Id}", id);
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
         }
@@ -257,7 +257,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to retrieve {Slug} from database", slug);
+                logger.LogError(ex, "Fail: Error while retrieving product from database with such slug. Slug: {slug}", slug);
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
         }
@@ -281,7 +281,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to delete {Id} from database", id);
+                logger.LogError(ex, "Fail: Error while deleting {Id} from database", id);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
