@@ -60,7 +60,8 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, ex.Message, addProductDto);
+                logger.LogError(ex, "Failed to add product. Name: {ProductName}, CategoryId: {CategoryId}",
+                    addProductDto.Name, addProductDto.CategoryId);
                 return ResponseFactory.Error("", "Internal error");
             }
         }
@@ -167,7 +168,8 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, ex.Message, updateProductDto.Id);
+                logger.LogError(ex, "Failed to update product. Name: {ProductName}, CategoryId: {CategoryId}",
+                    updateProductDto.Name, updateProductDto.CategoryId);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
@@ -184,6 +186,7 @@ namespace MinM_API.Services.Implementations
 
                 if (productsList == null || productsList.Count == 0)
                 {
+                    logger.LogInformation("No products found in database");
                     return ResponseFactory.Error(new List<GetProductDto>(), "There are no products", HttpStatusCode.NotFound);
                 }
 
@@ -194,11 +197,13 @@ namespace MinM_API.Services.Implementations
                     getProductsList.Add(mapper.ProductToGetProductDto(product));
                 }
 
+                logger.LogInformation("Retrieved {Count} products from database", getProductsList.Count);
+
                 return ResponseFactory.Success(getProductsList, "Successful extraction of products");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, ex.Message);
+                logger.LogError(ex, "Failed to retrieve products from database");
                 return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
             }
         }
@@ -215,6 +220,7 @@ namespace MinM_API.Services.Implementations
 
                 if (product == null)
                 {
+                    logger.LogInformation("No products found in database");
                     return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
                 }
 
@@ -224,7 +230,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, ex.Message, id);
+                logger.LogError(ex, "Failed to retrieve {Id} from database", id);
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
         }
@@ -241,6 +247,7 @@ namespace MinM_API.Services.Implementations
 
                 if (product == null)
                 {
+                    logger.LogInformation("No products found in database");
                     return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
                 }
 
@@ -250,7 +257,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, ex.Message);
+                logger.LogError(ex, "Failed to retrieve {Slug} from database", slug);
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
         }
@@ -263,6 +270,7 @@ namespace MinM_API.Services.Implementations
 
                 if (productToDelete == null)
                 {
+                    logger.LogInformation("No products found in database");
                     return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
@@ -273,7 +281,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, ex.Message, id);
+                logger.LogError(ex, "Failed to delete {Id} from database", id);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
