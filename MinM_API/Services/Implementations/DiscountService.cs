@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Discount;
@@ -12,7 +13,7 @@ using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class DiscountService(DataContext context, DiscountMapper mapper) : IDiscountService
+    public class DiscountService(DataContext context, DiscountMapper mapper, ILogger<DiscountService> logger) : IDiscountService
     {
         public async Task<ServiceResponse<int>> AddDiscount(AddDiscountDto dto)
         {
@@ -35,6 +36,7 @@ namespace MinM_API.Services.Implementations
 
                 if (productList == null)
                 {
+                    logger.LogInformation("Fail: No products found in database");
                     return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
@@ -56,6 +58,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Fail: Failed to add discount. Name: {DiscountName}", dto.Name);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
@@ -70,6 +73,7 @@ namespace MinM_API.Services.Implementations
 
                 if (discount == null)
                 {
+                    logger.LogInformation("Fail: No discounts found in database");
                     return ResponseFactory.Error(0, "Discount not found", HttpStatusCode.NotFound);
                 }
 
@@ -83,6 +87,7 @@ namespace MinM_API.Services.Implementations
 
                 if (discountedProductList.Count == 0)
                 {
+                    logger.LogInformation("Fail: No products found in database");
                     return ResponseFactory.Error(0, "No products found for provided IDs", HttpStatusCode.NotFound);
                 }
 
@@ -124,10 +129,10 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Fail: Failed to update discount. Name: {DiscountName}", dto.Name);
                 return ResponseFactory.Error(0, "internal error");
             }
         }
-
 
         public async Task<ServiceResponse<List<GetDiscountDto>>> GetAllDiscounts()
         {
@@ -137,6 +142,7 @@ namespace MinM_API.Services.Implementations
 
                 if (discountList == null || discountList.Count == 0)
                 {
+                    logger.LogInformation("Fail: No discounts found in database");
                     return ResponseFactory.Error(new List<GetDiscountDto>(), "There are no discounts", HttpStatusCode.NotFound);
                 }
 
@@ -151,6 +157,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Fail: Failed to retrieve discounts from database");
                 return ResponseFactory.Error(new List<GetDiscountDto>(), "Internal error");
             }
         }
@@ -173,6 +180,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Fail: Failed to retrieve discount from database with such id. Id: {Id}", id);
                 return ResponseFactory.Error(new GetDiscountDto(), "Internal error");
             }
         }
