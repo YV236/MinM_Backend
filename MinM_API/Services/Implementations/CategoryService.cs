@@ -2,6 +2,7 @@
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Category;
+using MinM_API.Dtos.Products;
 using MinM_API.Extension;
 using MinM_API.Mappers;
 using MinM_API.Migrations;
@@ -11,34 +12,31 @@ using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class CategoryService(DataContext context, CategoryMapper mapper) : ICategoryService
+    public class CategoryService(DataContext context, CategoryMapper mapper, ILogger<CategoryService> logger) : ICategoryService
     {
         public async Task<ServiceResponse<List<GetCategoryDto>>> GetAllCategory()
         {
             try
             {
-                var CategoryList = await context.Categories!
-                    .OrderBy(c=>c.Name)
+                var categoryList = await context.Categories!
+                    .OrderBy(c => c.Name)
                     .ToListAsync();
 
-                if (CategoryList == null || CategoryList.Count == 0)
+                if (categoryList == null || categoryList.Count == 0)
                 {
+                    logger.LogInformation("Fail: No categories found in database");
                     return ResponseFactory.Error(new List<GetCategoryDto>(), "There are no categories", HttpStatusCode.NotFound);
                 }
 
-                var getCategoryDtoList = new List<GetCategoryDto>();
-
-                foreach (var category in CategoryList)
-                {
-                    var getCategory = mapper.CategoryToGetCategoryDto(category);
-
-                    getCategoryDtoList.Add(getCategory);
-                }
+                var getCategoryDtoList = categoryList
+                   .Select(c => mapper.CategoryToGetCategoryDto(c))
+                   .ToList();
 
                 return ResponseFactory.Success(getCategoryDtoList, "Successful extraction of categories");
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Fail: Failed to retrieve categories from database");
                 return ResponseFactory.Error(new List<GetCategoryDto>(), "Internal error");
             }
         }
@@ -65,6 +63,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Fail: Failed to add category. Name: {CategoryName}", categoryDto.Name);
                 return ResponseFactory.Error(new GetCategoryDto(), "Internal error");
             }
         }
@@ -77,18 +76,22 @@ namespace MinM_API.Services.Implementations
 
                 if (category == null)
                 {
+                    logger.LogInformation("Fail: No categories found in database");
                     return ResponseFactory.Error(new GetCategoryDto(), "There is no category with such id", HttpStatusCode.NotFound);
                 }
 
                 if (category.Id == categoryDto.ParentCategoryId)
                 {
-                    return ResponseFactory.Error(new GetCategoryDto(), "You cannot provide the same Id as the Parent Id for this category");
+                    logger.LogInformation("Fail: You can't provide same Id as the Parent Id for this category. Id: {CategoryId}",
+                        categoryDto.ParentCategoryId);
+                    return ResponseFactory.Error(new GetCategoryDto(), "You can not provide the same Id as the Parent Id for this category");
                 }
 
                 var parentCategory = await context.Categories.FirstOrDefaultAsync(c => c.Id == categoryDto.ParentCategoryId);
 
                 if (categoryDto.ParentCategoryId != null && parentCategory == null)
                 {
+                    logger.LogInformation("Fail: There is no category with such id. Id: {CategoryId}", category.ParentCategoryId);
                     return ResponseFactory.Error(new GetCategoryDto(), "There is no category to be parent with such id", HttpStatusCode.NotFound);
                 }
 
@@ -105,6 +108,8 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Fail: Failed to update category. Name: {CategoryName}, Id: {CategoryId}",
+                    categoryDto.Name, categoryDto.Id);
                 return ResponseFactory.Error(new GetCategoryDto(), "Internal error");
             }
         }
@@ -119,6 +124,7 @@ namespace MinM_API.Services.Implementations
 
                 if (category == null)
                 {
+                    logger.LogInformation("Fail: No categories found in database. Id: {CategoryId}", categoryDto.CategoryId);
                     return ResponseFactory.Error(0, "There is no category with such id", HttpStatusCode.NotFound);
                 }
 
@@ -156,6 +162,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Fail: Failed to delete category. CategoryId: {CategoryId}", categoryDto.CategoryId);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
