@@ -41,17 +41,17 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto categoryDto)
+        public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto addCategoryDto)
         {
             try
             {
                 var category = new Category()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Name = categoryDto.Name,
-                    Slug = SlugExtension.GenerateSlug(categoryDto.Name),
-                    Description = categoryDto.Description,
-                    ParentCategoryId = categoryDto.ParentCategoryId,
+                    Name = addCategoryDto.Name,
+                    Slug = SlugExtension.GenerateSlug(addCategoryDto.Name),
+                    Description = addCategoryDto.Description,
+                    ParentCategoryId = addCategoryDto.ParentCategoryId,
                 };
 
                 context.Categories.Add(category);
@@ -63,16 +63,16 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Error while adding category. Name: {CategoryName}", categoryDto.Name);
+                logger.LogError(ex, "Fail: Error while adding category. Name: {CategoryName}", addCategoryDto.Name);
                 return ResponseFactory.Error(new GetCategoryDto(), "Internal error");
             }
         }
 
-        public async Task<ServiceResponse<GetCategoryDto>> UpdateCategory(UpdateCategoryDto categoryDto)
+        public async Task<ServiceResponse<GetCategoryDto>> UpdateCategory(UpdateCategoryDto updateCategoryDto)
         {
             try
             {
-                var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == categoryDto.Id);
+                var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == updateCategoryDto.Id);
 
                 if (category == null)
                 {
@@ -80,23 +80,23 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetCategoryDto(), "There is no category with such id", HttpStatusCode.NotFound);
                 }
 
-                if (category.Id == categoryDto.ParentCategoryId)
+                if (category.Id == updateCategoryDto.ParentCategoryId)
                 {
                     logger.LogInformation("Fail: You can't provide same Id as the Parent Id for this category. Id: {CategoryId}",
-                        categoryDto.ParentCategoryId);
+                        updateCategoryDto.ParentCategoryId);
                     return ResponseFactory.Error(new GetCategoryDto(), "You can not provide the same Id as the Parent Id for this category");
                 }
 
-                var parentCategory = await context.Categories.FirstOrDefaultAsync(c => c.Id == categoryDto.ParentCategoryId);
+                var parentCategory = await context.Categories.FirstOrDefaultAsync(c => c.Id == updateCategoryDto.ParentCategoryId);
 
-                if (categoryDto.ParentCategoryId != null && parentCategory == null)
+                if (updateCategoryDto.ParentCategoryId != null && parentCategory == null)
                 {
                     logger.LogInformation("Fail: There is no category with such id. Id: {CategoryId}", category.ParentCategoryId);
                     return ResponseFactory.Error(new GetCategoryDto(), "There is no category to be parent with such id", HttpStatusCode.NotFound);
                 }
 
-                mapper.UpdateCategoryDtoToCategory(categoryDto, category);
-                category.Slug = SlugExtension.GenerateSlug(categoryDto.Name);
+                mapper.UpdateCategoryDtoToCategory(updateCategoryDto, category);
+                category.Slug = SlugExtension.GenerateSlug(updateCategoryDto.Name);
 
                 context.Categories.Update(category);
 
@@ -109,31 +109,31 @@ namespace MinM_API.Services.Implementations
             catch (Exception ex)
             {
                 logger.LogError(ex, "Fail: Error updating category. Name: {CategoryName}, Id: {CategoryId}",
-                    categoryDto.Name, categoryDto.Id);
+                    updateCategoryDto.Name, updateCategoryDto.Id);
                 return ResponseFactory.Error(new GetCategoryDto(), "Internal error");
             }
         }
 
-        public async Task<ServiceResponse<int>> DeleteCategory(DeleteCategoryDto categoryDto)
+        public async Task<ServiceResponse<int>> DeleteCategory(DeleteCategoryDto deleteCategoryDto)
         {
             try
             {
                 var category = await context.Categories
                     .Include(c => c.Subcategories)
-                    .FirstOrDefaultAsync(c => c.Id == categoryDto.CategoryId);
+                    .FirstOrDefaultAsync(c => c.Id == deleteCategoryDto.CategoryId);
 
                 if (category == null)
                 {
-                    logger.LogInformation("Fail: No categories found in database. Id: {CategoryId}", categoryDto.CategoryId);
+                    logger.LogInformation("Fail: No categories found in database. Id: {CategoryId}", deleteCategoryDto.CategoryId);
                     return ResponseFactory.Error(0, "There is no category with such id", HttpStatusCode.NotFound);
                 }
 
-                if (category.ParentCategoryId == null && categoryDto.Option == DeleteOption.ReassignToParent)
-                    categoryDto.Option = DeleteOption.Orphan;
+                if (category.ParentCategoryId == null && deleteCategoryDto.Option == DeleteOption.ReassignToParent)
+                    deleteCategoryDto.Option = DeleteOption.Orphan;
 
                 if (category.Subcategories!.Count != 0)
                 {
-                    switch (categoryDto.Option)
+                    switch (deleteCategoryDto.Option)
                     {
                         case DeleteOption.CascadeDelete:
                             context.Categories.RemoveRange(category.Subcategories!);
@@ -162,7 +162,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Error while deleting category. CategoryId: {CategoryId}", categoryDto.CategoryId);
+                logger.LogError(ex, "Fail: Error while deleting category. CategoryId: {CategoryId}", deleteCategoryDto.CategoryId);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }

@@ -15,23 +15,23 @@ namespace MinM_API.Services.Implementations
 {
     public class DiscountService(DataContext context, DiscountMapper mapper, ILogger<DiscountService> logger) : IDiscountService
     {
-        public async Task<ServiceResponse<int>> AddDiscount(AddDiscountDto dto)
+        public async Task<ServiceResponse<int>> AddDiscount(AddDiscountDto addDiscountDto)
         {
             try
             {
                 var discount = new Discount
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Name = dto.Name,
-                    Slug = SlugExtension.GenerateSlug(dto.Name),
-                    DiscountPercentage = dto.DiscountPercentage,
-                    RemoveAfterExpiration = dto.RemoveAfterExpiration,
-                    StartDate = dto.StartDate,
-                    EndDate = dto.EndDate,
+                    Name = addDiscountDto.Name,
+                    Slug = SlugExtension.GenerateSlug(addDiscountDto.Name),
+                    DiscountPercentage = addDiscountDto.DiscountPercentage,
+                    RemoveAfterExpiration = addDiscountDto.RemoveAfterExpiration,
+                    StartDate = addDiscountDto.StartDate,
+                    EndDate = addDiscountDto.EndDate,
                 };
 
                 var productList = await context.Products
-                    .Where(p => dto.ProductIds.Contains(p.Id))
+                    .Where(p => addDiscountDto.ProductIds.Contains(p.Id))
                     .ToListAsync();
 
                 if (productList == null)
@@ -58,18 +58,18 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Error while adding discount. Name: {DiscountName}", dto.Name);
+                logger.LogError(ex, "Fail: Error while adding discount. Name: {DiscountName}", addDiscountDto.Name);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
 
-        public async Task<ServiceResponse<int>> UpdateDiscount(UpdateDiscountDto dto)
+        public async Task<ServiceResponse<int>> UpdateDiscount(UpdateDiscountDto updateDiscountDto)
         {
             try
             {
                 var discount = await context.Discounts
                     .Include(d => d.Products)
-                    .FirstOrDefaultAsync(d => d.Id == dto.Id);
+                    .FirstOrDefaultAsync(d => d.Id == updateDiscountDto.Id);
 
                 if (discount == null)
                 {
@@ -77,12 +77,12 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(0, "Discount not found", HttpStatusCode.NotFound);
                 }
 
-                mapper.UpdateDiscountToDiscount(dto, discount);
-                discount.Slug = SlugExtension.GenerateSlug(dto.Name);
+                mapper.UpdateDiscountToDiscount(updateDiscountDto, discount);
+                discount.Slug = SlugExtension.GenerateSlug(updateDiscountDto.Name);
 
                 var discountedProductList = await context.Products
                     .Include(d => d.ProductVariants)
-                    .Where(p => dto.ProductIds.Contains(p.Id))
+                    .Where(p => updateDiscountDto.ProductIds.Contains(p.Id))
                     .ToListAsync();
 
                 if (discountedProductList.Count == 0)
@@ -111,7 +111,7 @@ namespace MinM_API.Services.Implementations
 
                 foreach (var product in previouslyDiscountedProducts)
                 {
-                    if (!dto.ProductIds.Contains(product.Id))
+                    if (!updateDiscountDto.ProductIds.Contains(product.Id))
                     {
                         product.Discount = null;
                         product.DiscountId = null;
@@ -129,7 +129,7 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Fail: Error while updating discount. Name: {DiscountName}", dto.Name);
+                logger.LogError(ex, "Fail: Error while updating discount. Name: {DiscountName}", updateDiscountDto.Name);
                 return ResponseFactory.Error(0, "internal error");
             }
         }
@@ -174,9 +174,9 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetDiscountDto(), "There is no discount with such id", HttpStatusCode.NotFound);
                 }
 
-                var getDiscount = mapper.DiscountToDiscountDto(discount);
+                var getDiscountDto = mapper.DiscountToDiscountDto(discount);
 
-                return ResponseFactory.Success(getDiscount, "Successful extraction of discount");
+                return ResponseFactory.Success(getDiscountDto, "Successful extraction of discount");
             }
             catch (Exception ex)
             {

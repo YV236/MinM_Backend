@@ -6,8 +6,8 @@ namespace MinM_API.Services.Interfaces
     public interface ICategoryService
     {
         Task<ServiceResponse<List<GetCategoryDto>>> GetAllCategory();
-        Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto categoryDto);
-        Task<ServiceResponse<GetCategoryDto>> UpdateCategory(UpdateCategoryDto categoryDto);
-        Task<ServiceResponse<int>> DeleteCategory(DeleteCategoryDto categoryDto);
+        Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto addCategoryDto);
+        Task<ServiceResponse<GetCategoryDto>> UpdateCategory(UpdateCategoryDto updateCategoryDto);
+        Task<ServiceResponse<int>> DeleteCategory(DeleteCategoryDto deleteCategoryDto);
     }
 }
