@@ -70,7 +70,7 @@ namespace MinM_API.Services.Implementations
         {
             if (!await context.Categories.AnyAsync(c => c.Id == updateProductDto.CategoryId))
             {
-                return ResponseFactory.Error(0, "No Category with specified id where found", HttpStatusCode.NotFound);
+                return ResponseFactory.Error(0, "No Category with specified id found", HttpStatusCode.NotFound);
             }
 
             try
@@ -85,91 +85,19 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
-                product.Name = updateProductDto.Name;
-                product.Slug = SlugExtension.GenerateSlug(updateProductDto.Name);
-                product.Description = updateProductDto.Description;
-                product.CategoryId = updateProductDto.CategoryId;
-                product.SKU = updateProductDto.SKU;
+                mapper.UpdateProductToProduct(updateProductDto, product);
+                product.Slug = SlugExtension.GenerateSlug(product.Name);
 
-                var existingImages = product.ProductImages.Select(pi => pi.FilePath).ToList();
-
-                var newImages = updateProductDto.ImageUrls.Except(existingImages).ToList();
-
-                var imagesToRemove = existingImages.Except(updateProductDto.ImageUrls).ToList();
-
-                foreach (var imagePath in imagesToRemove)
-                {
-                    var imageToDelete = product.ProductImages.FirstOrDefault(pi => pi.FilePath == imagePath);
-                    if (imageToDelete != null)
-                    {
-                        context.ProductImages.Remove(imageToDelete);
-                        File.Delete(imagePath);
-                    }
-                }
-
-                foreach (var newImage in newImages)
-                {
-                    product.ProductImages.Add(new ProductImage
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        ProductId = product.Id,
-                        FilePath = newImage
-                    });
-                }
-
-                var existingVariants = product.ProductVariants.ToList();
-                var dtoVariants = updateProductDto.ProductVariants;
-
-                var dtoVariantIds = dtoVariants.Where(v => !string.IsNullOrEmpty(v.Id)).Select(v => v.Id).ToList();
-                var variantsToRemove = existingVariants.Where(ev => !dtoVariantIds.Contains(ev.Id)).ToList();
-
-                foreach (var variant in variantsToRemove)
-                {
-                    context.ProductVariants.Remove(variant);
-                }
+                UpdateProductImages(product, updateProductDto.ImageUrls);
 
                 var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == product.DiscountId);
-
-                foreach (var variantDto in dtoVariants)
-                {
-                    if (!string.IsNullOrEmpty(variantDto.Id))
-                    {
-                        var existing = existingVariants.FirstOrDefault(v => v.Id == variantDto.Id);
-                        if (existing != null)
-                        {
-                            existing.Name = variantDto.Name;
-                            existing.Price = variantDto.Price;
-                            existing.DiscountPrice = discount != null
-                                ? DiscountExtension.CountDiscountPrice(variantDto.Price, discount.DiscountPercentage) : 0;
-
-                            existing.UnitsInStock = variantDto.UnitsInStock;
-                            existing.IsStock = variantDto.IsStock;
-                        }
-                    }
-                    else
-                    {
-                        product.ProductVariants.Add(new ProductVariant
-                        {
-                            Id = Guid.NewGuid().ToString(),
-                            ProductId = product.Id,
-                            Name = variantDto.Name,
-                            Price = variantDto.Price,
-                            DiscountPrice = discount != null
-                            ? DiscountExtension.CountDiscountPrice(variantDto.Price, discount.DiscountPercentage) : 0,
-                            UnitsInStock = variantDto.UnitsInStock,
-                            IsStock = variantDto.IsStock
-                        });
-                    }
-                }
+                UpdateProductVariants(product, updateProductDto.ProductVariants, discount);
 
                 await context.SaveChangesAsync();
-
                 return ResponseFactory.Success(1, "Product successfully updated");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                logger.LogError(ex, "Fail: Error while updating product. Name: {ProductName}, CategoryId: {CategoryId}",
-                    updateProductDto.Name, updateProductDto.CategoryId);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
@@ -283,6 +211,77 @@ namespace MinM_API.Services.Implementations
             {
                 logger.LogError(ex, "Fail: Error while deleting {Id} from database", id);
                 return ResponseFactory.Error(0, "Internal error");
+            }
+        }
+
+        private void UpdateProductImages(Product product, List<string> newImageUrls)
+        {
+            var existingImages = product.ProductImages.Select(pi => pi.FilePath).ToList();
+
+            var toAdd = newImageUrls.Except(existingImages).ToList();
+            var toRemove = existingImages.Except(newImageUrls).ToList();
+
+            foreach (var imagePath in toRemove)
+            {
+                var img = product.ProductImages.FirstOrDefault(pi => pi.FilePath == imagePath);
+                if (img != null)
+                {
+                    context.ProductImages.Remove(img);
+                    File.Delete(imagePath);
+                }
+            }
+
+            foreach (var path in toAdd)
+            {
+                product.ProductImages.Add(new ProductImage
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ProductId = product.Id,
+                    FilePath = path
+                });
+            }
+        }
+
+        private void UpdateProductVariants(Product product, List<UpdateProductVariantDto> variantsDto, Discount? discount)
+        {
+            var existingVariants = product.ProductVariants.ToList();
+            var dtoIds = variantsDto.Where(v => !string.IsNullOrEmpty(v.Id)).Select(v => v.Id).ToList();
+
+            var toRemove = existingVariants.Where(ev => !dtoIds.Contains(ev.Id)).ToList();
+            foreach (var v in toRemove)
+            {
+                context.ProductVariants.Remove(v);
+            }
+
+            foreach (var variantDto in variantsDto)
+            {
+                if (!string.IsNullOrEmpty(variantDto.Id))
+                {
+                    var existing = existingVariants.FirstOrDefault(v => v.Id == variantDto.Id);
+                    if (existing != null)
+                    {
+                        existing.Name = variantDto.Name;
+                        existing.Price = variantDto.Price;
+                        existing.DiscountPrice = discount != null
+                            ? DiscountExtension.CountDiscountPrice(variantDto.Price, discount.DiscountPercentage) : 0;
+                        existing.UnitsInStock = variantDto.UnitsInStock;
+                        existing.IsStock = variantDto.IsStock;
+                    }
+                }
+                else
+                {
+                    product.ProductVariants.Add(new ProductVariant
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        ProductId = product.Id,
+                        Name = variantDto.Name,
+                        Price = variantDto.Price,
+                        DiscountPrice = discount != null
+                            ? DiscountExtension.CountDiscountPrice(variantDto.Price, discount.DiscountPercentage) : 0,
+                        UnitsInStock = variantDto.UnitsInStock,
+                        IsStock = variantDto.IsStock
+                    });
+                }
             }
         }
     }
