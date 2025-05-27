@@ -21,10 +21,10 @@ namespace MinM_API.Services.Implementations
         {
             var emptyFields = GetEmptyStringFields(userRegisterDto);
 
-            if (emptyFields.Any())
+            if (emptyFields.Count > 0)
             {
                 var fieldList = string.Join(", ", emptyFields);
-                logger.LogInformation($"Fail: Registration error. The following fields are missing or invalid: {fieldList}");
+                logger.LogInformation("Fail: Registration error. The following fields are missing or invalid: {FieldList}", fieldList);
                 return ResponseFactory.Error(0,
                     "Error while registering. Some of the properties may be filled incorrectly",
                     HttpStatusCode.UnprocessableEntity);
@@ -134,11 +134,10 @@ namespace MinM_API.Services.Implementations
 
                 var emptyFields = GetEmptyStringFields(userUpdateDto);
 
-                if (emptyFields.Any())
+                if (emptyFields.Count > 0)
                 {
                     var fieldList = string.Join(", ", emptyFields);
-                    logger.LogInformation($"Fail: The following fields are missing or invalid: {fieldList}");
-
+                    logger.LogInformation("Fail: The following fields are missing or invalid: {FieldList}", fieldList);
                     return ResponseFactory.Error(new GetUserDto(),
                         "Error while updating data. Some of the properties may be filled incorrectly",
                         HttpStatusCode.UnprocessableEntity);
