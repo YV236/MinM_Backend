@@ -8,10 +8,12 @@ using MinM_API.Mappers;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Net;
+using System.Text.Json;
 
 namespace MinM_API.Services.Implementations
 {
-    public class ProductService(DataContext context, ProductMapper mapper, ILogger<ProductService> logger) : IProductService
+    public class ProductService(DataContext context, ProductMapper mapper,
+        ILogger<ProductService> logger, IPhotoService photoService) : IProductService
     {
         public async Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto)
         {
@@ -28,7 +30,17 @@ namespace MinM_API.Services.Implementations
                     ProductImages = []
                 };
 
-                foreach (var productVariant in addProductDto.ProductVariants)
+                if (context.Products.Any(p => p.Slug == product.Slug))
+                {
+                    return ResponseFactory.Error("", $"You already have a product with this name '{product.Name}'", HttpStatusCode.BadRequest);
+                }
+
+                var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                foreach (var productVariant in variants)
                 {
                     product.ProductVariants.Add(new ProductVariant()
                     {
@@ -40,15 +52,15 @@ namespace MinM_API.Services.Implementations
                     });
                 }
 
-                if (addProductDto.ImageUrls != null)
+                if (addProductDto.Images != null)
                 {
-                    foreach (var image in addProductDto.ImageUrls)
+                    foreach (var image in addProductDto.Images)
                     {
                         product.ProductImages.Add(new ProductImage()
                         {
                             Id = Guid.NewGuid().ToString(),
                             ProductId = product.Id,
-                            FilePath = image
+                            FilePath = await photoService.UploadImageAsync(image)
                         });
                     }
                 }
