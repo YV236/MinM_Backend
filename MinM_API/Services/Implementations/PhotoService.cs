@@ -45,5 +45,22 @@ namespace MinM_API.Services.Implementations
 
             return uploadResult.SecureUrl.ToString();
         }
+
+        public string GetPublicIdFromUrl(string url)
+        {
+            var uri = new Uri(url);
+            var path = uri.AbsolutePath;
+            var filename = Path.GetFileNameWithoutExtension(path);
+            var folder = path.Split("/").Reverse().Skip(1).First();
+
+            return $"{folder}/{filename}";
+        }
+
+
+        public async Task DeleteImageAsync(string publicId)
+        {
+            var deletionParams = new DeletionParams(publicId);
+            await _cloudinary.DestroyAsync(deletionParams);
+        }
     }
 }
