@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Products;
+using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
 
 namespace MinM_API.Controllers
@@ -14,7 +15,7 @@ namespace MinM_API.Controllers
         [HttpPost]
         [Route("Create")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ServiceResponse<int>>> AddProduct(AddProductDto productDto)
+        public async Task<ActionResult<ServiceResponse<int>>> AddProduct([FromForm] AddProductDto productDto)
         {
             var response = await productService.AddProduct(productDto);
 

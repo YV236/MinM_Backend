@@ -11,7 +11,7 @@ namespace MinM_API.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ImageUrls",
+                name: "Images",
                 table: "Products");
 
             migrationBuilder.CreateTable(
@@ -46,7 +46,7 @@ namespace MinM_API.Migrations
                 name: "ProductImages");
 
             migrationBuilder.AddColumn<string>(
-                name: "ImageUrls",
+                name: "Images",
                 table: "Products",
                 type: "nvarchar(max)",
                 nullable: false,

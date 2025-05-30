@@ -39,6 +39,8 @@ builder.Services.AddIdentityApiEndpoints<User>().AddRoles<IdentityRole>()
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).UseLazyLoadingProxies());
 
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+
 builder.Services.AddControllers();
 
 builder.Services.AddHostedService<DiscountExpirationService>();
@@ -48,6 +50,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
+builder.Services.AddScoped<IPhotoService, PhotoService>();
 
 builder.Services.AddSingleton<ProductMapper>();
 builder.Services.AddSingleton<UserMapper>();

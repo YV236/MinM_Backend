@@ -8,10 +8,12 @@ using MinM_API.Mappers;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Net;
+using System.Text.Json;
 
 namespace MinM_API.Services.Implementations
 {
-    public class ProductService(DataContext context, ProductMapper mapper, ILogger<ProductService> logger) : IProductService
+    public class ProductService(DataContext context, ProductMapper mapper,
+        ILogger<ProductService> logger, IPhotoService photoService) : IProductService
     {
         public async Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto)
         {
@@ -28,7 +30,17 @@ namespace MinM_API.Services.Implementations
                     ProductImages = []
                 };
 
-                foreach (var productVariant in addProductDto.ProductVariants)
+                if (context.Products.Any(p => p.Slug == product.Slug))
+                {
+                    return ResponseFactory.Error("", $"You already have a product with this name '{product.Name}'", HttpStatusCode.BadRequest);
+                }
+
+                var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                foreach (var productVariant in variants)
                 {
                     product.ProductVariants.Add(new ProductVariant()
                     {
@@ -40,15 +52,15 @@ namespace MinM_API.Services.Implementations
                     });
                 }
 
-                if (addProductDto.ImageUrls != null)
+                if (addProductDto.Images != null)
                 {
-                    foreach (var image in addProductDto.ImageUrls)
+                    foreach (var image in addProductDto.Images)
                     {
                         product.ProductImages.Add(new ProductImage()
                         {
                             Id = Guid.NewGuid().ToString(),
                             ProductId = product.Id,
-                            FilePath = image
+                            FilePath = await photoService.UploadImageAsync(image)
                         });
                     }
                 }
@@ -88,10 +100,16 @@ namespace MinM_API.Services.Implementations
                 mapper.UpdateProductToProduct(updateProductDto, product);
                 product.Slug = SlugExtension.GenerateSlug(product.Name);
 
-                UpdateProductImages(product, updateProductDto.ImageUrls);
+                await UpdateProductImagesAsync(product, updateProductDto.ExistingImageUrls, updateProductDto.NewImages, photoService, context);
 
                 var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == product.DiscountId);
-                UpdateProductVariants(product, updateProductDto.ProductVariants, discount);
+
+                var variants = JsonSerializer.Deserialize<List<UpdateProductVariantDto>>(updateProductDto.ProductVariantsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                UpdateProductVariants(product, variants, discount);
 
                 await context.SaveChangesAsync();
                 return ResponseFactory.Success(1, "Product successfully updated");
@@ -202,6 +220,13 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
+                foreach(var image in productToDelete.ProductImages)
+                {
+                    var publicId = photoService.GetPublicIdFromUrl(image.FilePath);
+                    await photoService.DeleteImageAsync(publicId);
+                    context.Set<ProductImage>().Remove(image);
+                }
+
                 context.Products.Remove(productToDelete);
                 await context.SaveChangesAsync();
 
@@ -214,38 +239,43 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        private void UpdateProductImages(Product product, List<string> newImageUrls)
+        public async Task UpdateProductImagesAsync(
+            Product product,
+            List<string> existingImageUrls,
+            List<IFormFile> newImages,
+            IPhotoService photoService,
+            DbContext context)
         {
-            var existingImages = product.ProductImages.Select(pi => pi.FilePath).ToList();
+            var imagesToDelete = product.ProductImages
+                .Where(img => !existingImageUrls.Contains(img.FilePath))
+                .ToList();
 
-            var toAdd = newImageUrls.Except(existingImages).ToList();
-            var toRemove = existingImages.Except(newImageUrls).ToList();
-
-            foreach (var imagePath in toRemove)
+            foreach (var img in imagesToDelete)
             {
-                var img = product.ProductImages.FirstOrDefault(pi => pi.FilePath == imagePath);
-                if (img != null)
-                {
-                    context.ProductImages.Remove(img);
-                    File.Delete(imagePath);
-                }
+                var publicId = photoService.GetPublicIdFromUrl(img.FilePath);
+                await photoService.DeleteImageAsync(publicId);
+                context.Set<ProductImage>().Remove(img);
             }
 
-            foreach (var path in toAdd)
+            foreach (var file in newImages)
             {
-                product.ProductImages.Add(new ProductImage
+                var imageUrl = await photoService.UploadImageAsync(file);
+                if (imageUrl != null)
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    ProductId = product.Id,
-                    FilePath = path
-                });
+                    product.ProductImages.Add(new ProductImage
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        ProductId = product.Id,
+                        FilePath = imageUrl
+                    });
+                }
             }
         }
 
-        private void UpdateProductVariants(Product product, List<UpdateProductVariantDto> variantsDto, Discount? discount)
+        private void UpdateProductVariants(Product product, List<UpdateProductVariantDto>? variants, Discount? discount)
         {
             var existingVariants = product.ProductVariants.ToList();
-            var dtoIds = variantsDto.Where(v => !string.IsNullOrEmpty(v.Id)).Select(v => v.Id).ToList();
+            var dtoIds = variants.Where(v => !string.IsNullOrEmpty(v.Id)).Select(v => v.Id).ToList();
 
             var toRemove = existingVariants.Where(ev => !dtoIds.Contains(ev.Id)).ToList();
             foreach (var v in toRemove)
@@ -253,7 +283,7 @@ namespace MinM_API.Services.Implementations
                 context.ProductVariants.Remove(v);
             }
 
-            foreach (var variantDto in variantsDto)
+            foreach (var variantDto in variants)
             {
                 if (!string.IsNullOrEmpty(variantDto.Id))
                 {
