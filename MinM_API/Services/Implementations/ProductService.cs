@@ -15,6 +15,11 @@ namespace MinM_API.Services.Implementations
     public class ProductService(DataContext context, ProductMapper mapper,
         ILogger<ProductService> logger, IPhotoService photoService) : IProductService
     {
+        private static readonly JsonSerializerOptions jsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         public async Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto)
         {
             try
@@ -35,10 +40,7 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error("", $"You already have a product with this name '{product.Name}'", HttpStatusCode.BadRequest);
                 }
 
-                var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, jsonOptions);
 
                 foreach (var productVariant in variants)
                 {
@@ -100,14 +102,11 @@ namespace MinM_API.Services.Implementations
                 mapper.UpdateProductToProduct(updateProductDto, product);
                 product.Slug = SlugExtension.GenerateSlug(product.Name);
 
-                await UpdateProductImagesAsync(product, updateProductDto.ExistingImageUrls, updateProductDto.NewImages, photoService, context);
+                await UpdateProductImagesAsync(product, updateProductDto.ExistingImageUrls, updateProductDto.NewImages);
 
                 var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == product.DiscountId);
 
-                var variants = JsonSerializer.Deserialize<List<UpdateProductVariantDto>>(updateProductDto.ProductVariantsJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var variants = JsonSerializer.Deserialize<List<UpdateProductVariantDto>>(updateProductDto.ProductVariantsJson, jsonOptions);
 
                 UpdateProductVariants(product, variants, discount);
 
@@ -220,11 +219,11 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
-                foreach(var image in productToDelete.ProductImages)
+                foreach (var image in productToDelete.ProductImages)
                 {
                     var publicId = photoService.GetPublicIdFromUrl(image.FilePath);
                     await photoService.DeleteImageAsync(publicId);
-                    context.Set<ProductImage>().Remove(image);
+                    context.ProductImages.Remove(image);
                 }
 
                 context.Products.Remove(productToDelete);
@@ -242,9 +241,7 @@ namespace MinM_API.Services.Implementations
         public async Task UpdateProductImagesAsync(
             Product product,
             List<string> existingImageUrls,
-            List<IFormFile> newImages,
-            IPhotoService photoService,
-            DbContext context)
+            List<IFormFile> newImages)
         {
             var imagesToDelete = product.ProductImages
                 .Where(img => !existingImageUrls.Contains(img.FilePath))
@@ -254,7 +251,7 @@ namespace MinM_API.Services.Implementations
             {
                 var publicId = photoService.GetPublicIdFromUrl(img.FilePath);
                 await photoService.DeleteImageAsync(publicId);
-                context.Set<ProductImage>().Remove(img);
+                context.ProductImages.Remove(img);
             }
 
             foreach (var file in newImages)

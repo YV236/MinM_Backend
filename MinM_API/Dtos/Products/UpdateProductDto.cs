@@ -12,7 +12,6 @@ namespace MinM_API.Dtos.Products
         [FromForm(Name = "ProductVariantsJson")]
         public string ProductVariantsJson { get; set; } = string.Empty;
 
-        public List<UpdateProductVariantDto> ProductVariants { get; set; } = [];
         public string CategoryId { get; set; } = string.Empty;
         public string SKU { get; set; } = string.Empty;
 
