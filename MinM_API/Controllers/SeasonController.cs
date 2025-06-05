@@ -13,11 +13,20 @@ namespace MinM_API.Controllers
     public class SeasonController(ISeasonService seasonService) : ControllerBase
     {
         [HttpPost]
-        [Route("create")]
+        [Route("Create")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ServiceResponse<int>>> AddSeason(AddSeasonDto seasonDto)
         {
             var response = await seasonService.AddSeason(seasonDto);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpGet]
+        [Route("GetAll")]
+        public async Task<ActionResult<List<GetSeasonDto>>> GetAllSeasons()
+        {
+            var response = await seasonService.GetAllSeasons();
 
             return StatusCode((int)response.StatusCode, response);
         }

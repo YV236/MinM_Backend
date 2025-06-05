@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
 using MinM_API.Dtos;
+using MinM_API.Dtos.Discount;
 using MinM_API.Dtos.Season;
 using MinM_API.Extension;
 using MinM_API.Mappers;
@@ -10,7 +11,7 @@ using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class SeasonService(DataContext context, ILogger<SeasonService> logger) : ISeasonService
+    public class SeasonService(DataContext context, SeasonMapper mapper, ILogger<SeasonService> logger) : ISeasonService
     {
         public async Task<ServiceResponse<int>> AddSeason(AddSeasonDto addSeasonDto)
         {
@@ -53,9 +54,32 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public Task<ServiceResponse<List<GetSeasonDto>>> GetAllSeasons()
+        public async Task<ServiceResponse<List<GetSeasonDto>>> GetAllSeasons()
         {
-            throw new NotImplementedException();
+            try
+            {
+                var seasonsList = await context.Seasons.ToListAsync();
+
+                if(seasonsList == null || seasonsList.Count == 0)
+                {
+                    logger.LogInformation("Fail: No seasons found in database");
+                    return ResponseFactory.Error(new List<GetSeasonDto>(), "There are no seasons", HttpStatusCode.NotFound);
+                }
+
+                var getSeasonsList = new List<GetSeasonDto>();
+
+                foreach (var season in seasonsList)
+                {
+                    getSeasonsList.Add(mapper.SeasonToGetSeasonDto(season));
+                }
+
+                return ResponseFactory.Success(getSeasonsList, "Successful extraction of seasons");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while retrieving seasons from database");
+                return ResponseFactory.Error(new List<GetSeasonDto>(), "Internal error");
+            }
         }
 
         public Task<ServiceResponse<GetSeasonDto>> GetSeasonById(string id)
