@@ -32,10 +32,19 @@ namespace MinM_API.Controllers
         }
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("GetById")]
         public async Task<ActionResult<GetSeasonDto>> GetSeasonById(string id)
         {
             var response = await seasonService.GetSeasonById(id);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpGet]
+        [Route("{slug}")]
+        public async Task<ActionResult<GetSeasonDto>> GetSeasonBySlug(string slug)
+        {
+            var response = await seasonService.GetSeasonBySlug(slug);
 
             return StatusCode((int)response.StatusCode, response);
         }

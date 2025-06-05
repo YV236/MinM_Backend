@@ -105,9 +105,27 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public Task<ServiceResponse<GetSeasonDto>> GetSeasonBySlug(string slug)
+        public async Task<ServiceResponse<GetSeasonDto>> GetSeasonBySlug(string slug)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var season = await context.Seasons.Include(d => d.Products)
+                    .ThenInclude(p => p.ProductImages).FirstOrDefaultAsync(s => s.Slug == slug);
+
+                if (season == null)
+                {
+                    return ResponseFactory.Error(new GetSeasonDto(), "There is no season with such slug", HttpStatusCode.NotFound);
+                }
+
+                var getDiscountDto = mapper.SeasonToGetSeasonDto(season);
+
+                return ResponseFactory.Success(getDiscountDto, "Successful extraction of season");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while retrieving season from database with such slug. slug: {slug}", slug);
+                return ResponseFactory.Error(new GetSeasonDto(), "Internal error");
+            }
         }
 
         public Task<ServiceResponse<int>> UpdateSeason(UpdateSeasonDto updateSeasonDto)
