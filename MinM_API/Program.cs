@@ -54,6 +54,7 @@ builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
 
 builder.Services.AddSingleton<ProductMapper>();
+builder.Services.AddSingleton<SeasonMapper>();
 builder.Services.AddSingleton<UserMapper>();
 builder.Services.AddSingleton<CategoryMapper>();
 builder.Services.AddSingleton<DiscountMapper>();
