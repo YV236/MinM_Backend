@@ -30,5 +30,14 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<ActionResult<GetSeasonDto>> GetSeasonById(string id)
+        {
+            var response = await seasonService.GetSeasonById(id);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
