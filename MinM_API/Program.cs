@@ -44,6 +44,7 @@ builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(
 builder.Services.AddControllers();
 
 builder.Services.AddHostedService<DiscountExpirationService>();
+builder.Services.AddHostedService<SeasonExpirationService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
