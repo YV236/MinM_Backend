@@ -48,5 +48,14 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpPut]
+        [Route("Update")]
+        public async Task<ActionResult<ServiceResponse<int>>> UpdateSeason(UpdateSeasonDto updateSeasonDto)
+        {
+            var response = await seasonService.UpdateSeason(updateSeasonDto);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }

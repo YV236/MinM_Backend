@@ -128,9 +128,67 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public Task<ServiceResponse<int>> UpdateSeason(UpdateSeasonDto updateSeasonDto)
+        public async Task<ServiceResponse<int>> UpdateSeason(UpdateSeasonDto updateSeasonDto)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var season = await context.Seasons
+                    .Include(s => s.Products)
+                    .FirstOrDefaultAsync(s => s.Id == updateSeasonDto.Id);
+
+                if(season == null)
+                {
+                    logger.LogInformation("Fail: No seasons found in database");
+                    return ResponseFactory.Error(0, "Season not found", HttpStatusCode.NotFound);
+                }
+
+                mapper.UpdateSeasonToSeason(updateSeasonDto, season);
+                season.Slug = SlugExtension.GenerateSlug(updateSeasonDto.Name);
+
+                var seasonedProductList = await context.Products
+                   .Include(d => d.ProductVariants)
+                   .Where(p => updateSeasonDto.ProductIds.Contains(p.Id))
+                   .ToListAsync();
+
+                if (seasonedProductList.Count == 0)
+                {
+                    logger.LogInformation("Fail: No products found in database");
+                    return ResponseFactory.Error(0, "No products found for provided IDs", HttpStatusCode.NotFound);
+                }
+
+                season.Products = seasonedProductList;
+
+                foreach (var product in seasonedProductList)
+                {
+                    product.Season = season;
+                    product.SeasonId = season.Id;
+                    product.IsSeasonal = true;
+                }
+
+                var previouslyDiscountedProducts = await context.Products
+                    .Include(p => p.ProductVariants)
+                    .Where(p => p.SeasonId == season.Id)
+                    .ToListAsync();
+
+                foreach (var product in previouslyDiscountedProducts)
+                {
+                    if (!updateSeasonDto.ProductIds.Contains(product.Id))
+                    {
+                        product.Season = null;
+                        product.SeasonId = null;
+                        product.IsSeasonal = false;
+                    }
+                }
+
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success(1, "Discount successfully updated");
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while updating season. Name: {SeasonName}", updateSeasonDto.Name);
+                return ResponseFactory.Error(0, "internal error");
+            }
         }
     }
 }
