@@ -8,5 +8,7 @@ namespace MinM_API.Mappers
     public partial class SeasonMapper
     {
         public partial GetSeasonDto SeasonToGetSeasonDto(Season season);
+
+        public partial void UpdateSeasonToSeason(UpdateSeasonDto updateSeasonDto, Season season);
     }
 }
