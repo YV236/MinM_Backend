@@ -17,7 +17,6 @@ namespace MinM_API.Mappers
         [MapperIgnoreSource(nameof(User.NormalizedUserName))]
         [MapperIgnoreSource(nameof(User.Email))]
         [MapperIgnoreSource(nameof(User.EmailConfirmed))]
-        [MapperIgnoreSource(nameof(User.Slug))]
         [MapperIgnoreSource(nameof(User.PasswordHash))]
         public partial void UpdateUserDtoToUserModel(UpdateUserDto userDto, User user);
 

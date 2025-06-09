@@ -34,8 +34,7 @@ namespace MinM_API.Extension
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
-                    EmailConfirmed = true,
-                    Slug = SlugExtension.GenerateSlug(adminEmail),
+                    EmailConfirmed = true
                 };
 
                 var result = await userManager.CreateAsync(newAdmin, adminPassword);
@@ -43,6 +42,13 @@ namespace MinM_API.Extension
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(newAdmin, "Admin");
+                }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        Console.WriteLine($"Admin creation error: {error.Code} - {error.Description}");
+                    }
                 }
             }
         }

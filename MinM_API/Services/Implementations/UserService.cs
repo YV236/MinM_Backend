@@ -50,7 +50,6 @@ namespace MinM_API.Services.Implementations
             {
                 var user = new User
                 {
-                    Slug = SlugExtension.GenerateSlug(userRegisterDto.Email),
                     UserFirstName = userRegisterDto.UserFirstName,
                     UserLastName = userRegisterDto.UserLastName,
                     Email = userRegisterDto.Email,
