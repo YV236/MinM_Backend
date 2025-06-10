@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Category;
@@ -12,7 +13,8 @@ using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
-    public class CategoryService(DataContext context, CategoryMapper mapper, ILogger<CategoryService> logger) : ICategoryService
+    public class CategoryService(DataContext context, CategoryMapper mapper,
+        ILogger<CategoryService> logger, IPhotoService photoService) : ICategoryService
     {
         public async Task<ServiceResponse<List<GetCategoryDto>>> GetAllCategory()
         {
@@ -52,6 +54,7 @@ namespace MinM_API.Services.Implementations
                     Slug = SlugExtension.GenerateSlug(addCategoryDto.Name),
                     Description = addCategoryDto.Description,
                     ParentCategoryId = addCategoryDto.ParentCategoryId,
+                    ImageURL = await photoService.UploadImageAsync(addCategoryDto.Image)
                 };
 
                 context.Categories.Add(category);
@@ -98,6 +101,13 @@ namespace MinM_API.Services.Implementations
                 mapper.UpdateCategoryDtoToCategory(updateCategoryDto, category);
                 category.Slug = SlugExtension.GenerateSlug(updateCategoryDto.Name);
 
+                if (updateCategoryDto.NewImage != null)
+                {
+                    var publicId = photoService.GetPublicIdFromUrl(category.ImageURL);
+                    await photoService.DeleteImageAsync(publicId);
+                    category.ImageURL = await photoService.UploadImageAsync(updateCategoryDto.NewImage);
+                }
+
                 context.Categories.Update(category);
 
                 await context.SaveChangesAsync();
@@ -129,7 +139,12 @@ namespace MinM_API.Services.Implementations
                 }
 
                 if (category.ParentCategoryId == null && deleteCategoryDto.Option == DeleteOption.ReassignToParent)
-                    deleteCategoryDto.Option = DeleteOption.Orphan;
+                {
+                    deleteCategoryDto.Option = DeleteOption.Orphan; 
+                }
+
+                var publicId = photoService.GetPublicIdFromUrl(category.ImageURL);
+                await photoService.DeleteImageAsync(publicId);
 
                 if (category.Subcategories!.Count != 0)
                 {

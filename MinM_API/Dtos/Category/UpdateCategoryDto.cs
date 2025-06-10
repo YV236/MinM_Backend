@@ -7,5 +7,9 @@
         public string Description { get; set; } = string.Empty;
 
         public string? ParentCategoryId { get; set; }
+
+        public string? ExistingImageURL { get; set; } = string.Empty;
+
+        public IFormFile? NewImage { get; set; }
     }
 }

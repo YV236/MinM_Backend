@@ -8,5 +8,6 @@
         public string Description { get; set; } = string.Empty;
 
         public string? ParentCategoryId { get; set; }
+        public string? ImageURL { get; set; } = string.Empty;
     }
 }
