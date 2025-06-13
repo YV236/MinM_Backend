@@ -140,7 +140,7 @@ namespace MinM_API.Services.Implementations
 
                 if (category.ParentCategoryId == null && deleteCategoryDto.Option == DeleteOption.ReassignToParent)
                 {
-                    deleteCategoryDto.Option = DeleteOption.Orphan; 
+                    deleteCategoryDto.Option = DeleteOption.Orphan;
                 }
 
                 var publicId = photoService.GetPublicIdFromUrl(category.ImageURL);

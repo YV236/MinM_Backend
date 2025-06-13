@@ -22,7 +22,6 @@ namespace MinM_API.Services.Implementations
     {
         public async Task<ServiceResponse<string>> Login(LoginDto loginDto)
         {
-            var serviceResponse = new ServiceResponse<string>();
             var user = await userManager.FindByEmailAsync(loginDto.Email);
 
             if (user == null || !await userManager.CheckPasswordAsync(user, loginDto.Password))
@@ -59,7 +58,7 @@ namespace MinM_API.Services.Implementations
                     HttpStatusCode.UnprocessableEntity);
             }
 
-            if(!IsValidPassword(userRegisterDto.Password))
+            if (!IsValidPassword(userRegisterDto.Password))
             {
                 logger.LogInformation("Fail: 'Password' field is missing or not in correct format. Password: {Password}", userRegisterDto.Password);
                 return ResponseFactory.Error(0,
@@ -155,7 +154,7 @@ namespace MinM_API.Services.Implementations
                         HttpStatusCode.UnprocessableEntity);
                 }
 
-                if(getUser.Address is null)
+                if (getUser.Address is null)
                 {
                     getUser.Address = new AddressModel() { Id = Guid.NewGuid().ToString() };
                     getUser.AddressId = getUser.Address.Id;

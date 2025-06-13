@@ -60,7 +60,7 @@ namespace MinM_API.Services.Implementations
             {
                 var seasonsList = await context.Seasons.ToListAsync();
 
-                if(seasonsList == null || seasonsList.Count == 0)
+                if (seasonsList == null || seasonsList.Count == 0)
                 {
                     logger.LogInformation("Fail: No seasons found in database");
                     return ResponseFactory.Error(new List<GetSeasonDto>(), "There are no seasons", HttpStatusCode.NotFound);
@@ -136,7 +136,7 @@ namespace MinM_API.Services.Implementations
                     .Include(s => s.Products)
                     .FirstOrDefaultAsync(s => s.Id == updateSeasonDto.Id);
 
-                if(season == null)
+                if (season == null)
                 {
                     logger.LogInformation("Fail: No seasons found in database");
                     return ResponseFactory.Error(0, "Season not found", HttpStatusCode.NotFound);
@@ -184,7 +184,7 @@ namespace MinM_API.Services.Implementations
 
                 return ResponseFactory.Success(1, "Discount successfully updated");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(ex, "Fail: Error while updating season. Name: {SeasonName}", updateSeasonDto.Name);
                 return ResponseFactory.Error(0, "internal error");

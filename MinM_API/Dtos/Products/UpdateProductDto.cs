@@ -11,7 +11,7 @@ namespace MinM_API.Dtos.Products
         [FromForm(Name = "ProductVariantsJson")] public string ProductVariantsJson { get; set; } = string.Empty;
         [FromForm] public string CategoryId { get; set; } = string.Empty;
         [FromForm] public string SKU { get; set; } = string.Empty;
-        [FromForm] public List<string> ExistingImageUrls { get; set; } = new();
-        [FromForm] public List<IFormFile> NewImages { get; set; } = new();
+        [FromForm] public List<string> ExistingImageUrls { get; set; } = [];
+        [FromForm] public List<IFormFile> NewImages { get; set; } = [];
     }
 }
