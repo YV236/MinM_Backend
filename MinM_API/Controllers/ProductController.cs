@@ -14,7 +14,7 @@ namespace MinM_API.Controllers
     {
         [HttpPost]
         [Route("Create")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> AddProduct([FromForm] AddProductDto productDto)
         {
             var response = await productService.AddProduct(productDto);
@@ -24,7 +24,7 @@ namespace MinM_API.Controllers
 
         [HttpPut]
         [Route("Update")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> UpdateProduct(UpdateProductDto productDto)
         {
             var response = await productService.UpdateProduct(productDto);
@@ -34,7 +34,7 @@ namespace MinM_API.Controllers
 
         [HttpDelete]
         [Route("Delete")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> DeleteProduct(string id)
         {
             var response = await productService.DeleteProduct(id);

@@ -14,7 +14,7 @@ namespace MinM_API.Controllers
     {
         [HttpPost]
         [Route("Create")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> AddSeason(AddSeasonDto seasonDto)
         {
             var response = await seasonService.AddSeason(seasonDto);

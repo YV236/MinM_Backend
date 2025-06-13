@@ -13,7 +13,7 @@ namespace MinM_API.Controllers
     {
         [HttpPost]
         [Route("Create")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> AddDiscount(AddDiscountDto discountDto)
         {
             var response = await discountService.AddDiscount(discountDto);
@@ -23,7 +23,7 @@ namespace MinM_API.Controllers
 
         [HttpPut]
         [Route("Update")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> UpdateDiscount(UpdateDiscountDto discountDto)
         {
             var response = await discountService.UpdateDiscount(discountDto);

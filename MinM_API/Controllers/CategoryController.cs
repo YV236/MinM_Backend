@@ -13,7 +13,7 @@ namespace MinM_API.Controllers
     {
         [HttpPost]
         [Route("Create")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<GetCategoryDto>>> AddCategory(AddCategoryDto addCategoryDto)
         {
             var response = await categoryService.AddCategory(addCategoryDto);
@@ -23,7 +23,7 @@ namespace MinM_API.Controllers
 
         [HttpPut]
         [Route("Update")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<GetCategoryDto>>> UpdateCategory(UpdateCategoryDto updateCategoryDto)
         {
             var response = await categoryService.UpdateCategory(updateCategoryDto);
@@ -33,7 +33,7 @@ namespace MinM_API.Controllers
 
         [HttpDelete]
         [Route("Delete")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> DeleteCategory(DeleteCategoryDto deleteCategoryDto)
         {
             var response = await categoryService.DeleteCategory(deleteCategoryDto);
