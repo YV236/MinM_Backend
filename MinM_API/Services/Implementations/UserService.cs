@@ -12,6 +12,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
+using AddressModel = MinM_API.Models.Address;
+
 namespace MinM_API.Services.Implementations
 {
     public class UserService(IUserRepository userRepository, UserManager<User> userManager,
@@ -151,6 +153,12 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetUserDto(),
                         $"Error while registering. Phone number '{userUpdateDto.PhoneNumber}' must contain numbers only and have at least 9 digits.",
                         HttpStatusCode.UnprocessableEntity);
+                }
+
+                if(getUser.Address is null)
+                {
+                    getUser.Address = new AddressModel() { Id = Guid.NewGuid().ToString() };
+                    getUser.AddressId = getUser.Address.Id;
                 }
 
                 mapper.UpdateUserDtoToUserModel(userUpdateDto, getUser);
