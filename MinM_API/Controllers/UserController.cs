@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using MinM_API.Dtos;
 using MinM_API.Dtos.User;
 using MinM_API.Services.Implementations;
@@ -21,7 +23,7 @@ namespace MinM_API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         [Route("UserInfo")]
         public async Task<ActionResult<ServiceResponse<GetUserDto>>> GetUserInfo()
         {
@@ -31,11 +33,24 @@ namespace MinM_API.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "User")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         [Route("UpdateInfo")]
         public async Task<ActionResult<ServiceResponse<GetUserDto>>> UpdateInfo(UpdateUserDto updateUserDto)
         {
             var response = await _userService.UpdateUserInfo(User, updateUserDto);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto model)
+        {
+            var response = await _userService.Login(model);
+
+            if (response.Data.IsNullOrEmpty())
+            {
+                return StatusCode((int)response.StatusCode, response);
+            }
 
             return StatusCode((int)response.StatusCode, response);
         }
