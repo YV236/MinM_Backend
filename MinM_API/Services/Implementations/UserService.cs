@@ -15,8 +15,27 @@ using System.Text.RegularExpressions;
 namespace MinM_API.Services.Implementations
 {
     public class UserService(IUserRepository userRepository, UserManager<User> userManager,
-        DataContext context, UserMapper mapper, ILogger<UserService> logger) : IUserService
+        DataContext context, UserMapper mapper, ILogger<UserService> logger,
+        JwtTokenService jwtTokenService) : IUserService
     {
+        public async Task<ServiceResponse<string>> Login(LoginDto loginDto)
+        {
+            var serviceResponse = new ServiceResponse<string>();
+            var user = await userManager.FindByEmailAsync(loginDto.Email);
+
+            if (user == null || !await userManager.CheckPasswordAsync(user, loginDto.Password))
+            {
+                return ResponseFactory.Error("",
+                    "Error while registering. Some of the properties may be filled incorrectly",
+                    HttpStatusCode.UnprocessableEntity);
+            }
+
+            var roles = await userManager.GetRolesAsync(user);
+
+            return ResponseFactory.Success(jwtTokenService.CreateToken(user, roles), "User loged in successfully");
+        }
+
+
         public async Task<ServiceResponse<int>> Register(UserRegisterDto userRegisterDto)
         {
             var emptyFields = GetEmptyStringFields(userRegisterDto);
