@@ -38,11 +38,11 @@ namespace MinM_API.Services.Implementations
                     HttpStatusCode.UnprocessableEntity);
             }
 
-            if (userRegisterDto.PhoneNumber.Any(c => !char.IsDigit(c)) || userRegisterDto.PhoneNumber.Length < 9)
+            if(!IsValidPassword(userRegisterDto.Password))
             {
-                logger.LogInformation("Fail: 'Phone number' field is missing or not in correct format. Phone number: {Number}", userRegisterDto.PhoneNumber);
+                logger.LogInformation("Fail: 'Password' field is missing or not in correct format. Password: {Password}", userRegisterDto.Password);
                 return ResponseFactory.Error(0,
-                    $"Error while registering. Phone number '{userRegisterDto.PhoneNumber}' must contain numbers only. And contain at least 9 digits",
+                    $"Registration failed. The password '{userRegisterDto.Password}' must include special symbols numbers and uppercase.",
                     HttpStatusCode.UnprocessableEntity);
             }
 
@@ -50,25 +50,10 @@ namespace MinM_API.Services.Implementations
             {
                 var user = new User
                 {
-                    UserFirstName = userRegisterDto.UserFirstName,
-                    UserLastName = userRegisterDto.UserLastName,
                     Email = userRegisterDto.Email,
                     UserName = userRegisterDto.Email,
-                    PhoneNumber = userRegisterDto.PhoneNumber,
                     DateOfCreation = DateTime.Now,
-                    Address = new Models.Address
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Street = userRegisterDto.AddressDto.Street,
-                        HomeNumber = userRegisterDto.AddressDto.HomeNumber,
-                        City = userRegisterDto.AddressDto.City,
-                        Region = userRegisterDto.AddressDto.Region,
-                        PostalCode = userRegisterDto.AddressDto.PostalCode,
-                        Country = userRegisterDto.AddressDto.Country,
-                    }
                 };
-
-                user.AddressId = user.Address.Id;
 
                 var result = await userManager.CreateAsync(user, userRegisterDto.Password);
 
@@ -170,6 +155,12 @@ namespace MinM_API.Services.Implementations
         {
             var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             return Regex.IsMatch(email, emailPattern);
+        }
+
+        private static bool IsValidPassword(string password)
+        {
+            var passwordPattern = @"^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$";
+            return Regex.IsMatch(password, passwordPattern);
         }
 
         private static List<string> GetEmptyStringFields<T>(T obj) where T : class
