@@ -80,6 +80,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddHostedService<DiscountExpirationService>();
 builder.Services.AddHostedService<SeasonExpirationService>();
+builder.Services.AddHostedService<CheckProductFreshnessService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
