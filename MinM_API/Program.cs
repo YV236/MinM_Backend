@@ -53,6 +53,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
+builder.Services.AddScoped<JwtTokenService>();
 
 builder.Services.AddSingleton<ProductMapper>();
 builder.Services.AddSingleton<SeasonMapper>();
