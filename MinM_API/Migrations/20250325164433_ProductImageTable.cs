@@ -10,10 +10,6 @@ namespace MinM_API.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Images",
-                table: "Products");
-
             migrationBuilder.CreateTable(
                 name: "ProductImages",
                 columns: table => new

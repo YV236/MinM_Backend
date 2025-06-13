@@ -249,8 +249,7 @@ namespace MinM_API.Migrations
                     UnitsInStock = table.Column<int>(type: "int", nullable: false),
                     IsStock = table.Column<bool>(type: "bit", nullable: false),
                     CategoryId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SKU = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ImageUrls = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    SKU = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
