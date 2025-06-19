@@ -18,7 +18,7 @@ namespace MinM_API.Controllers
             if (user == null) return NotFound("User not found");
 
             var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken = WebUtility.UrlEncode(token); // ОБОВʼЯЗКОВО кодуємо для передачі в URL або JSON
+            var encodedToken = WebUtility.UrlEncode(token);
 
             await emailService.SendEmailAsync(email, "Код підтвердження", $"Ваш код: {encodedToken}");
 
@@ -28,10 +28,10 @@ namespace MinM_API.Controllers
         [HttpPost("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest request)
         {
-            var user = await userManager.FindByIdAsync(request.UserId);
+            var user = await userManager.FindByEmailAsync(request.Email);
             if (user == null) return NotFound("User not found");
 
-            var token = WebUtility.UrlDecode(request.Token); // ОБОВʼЯЗКОВО декодуємо
+            var token = WebUtility.UrlDecode(request.Token);
 
             var result = await userManager.ConfirmEmailAsync(user, token);
             return result.Succeeded
@@ -41,7 +41,7 @@ namespace MinM_API.Controllers
 
         public class ConfirmEmailRequest
         {
-            public string UserId { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
             public string Token { get; set; } = string.Empty;
         }
     }
