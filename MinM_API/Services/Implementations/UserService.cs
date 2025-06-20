@@ -33,7 +33,7 @@ namespace MinM_API.Services.Implementations
 
             var roles = await userManager.GetRolesAsync(user);
 
-            return ResponseFactory.Success(jwtTokenService.CreateToken(user, roles), "User loged in successfully");
+            return ResponseFactory.Success(jwtTokenService.CreateUserToken(user, roles), "User loged in successfully");
         }
 
 

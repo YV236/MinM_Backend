@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using MinM_API.Extension;
 using MinM_API.Models;
+using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
 using System.Net;
 
@@ -9,7 +11,7 @@ namespace MinM_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class EmailSenderController(UserManager<User> userManager, IEmailService emailService) : ControllerBase
+    public class EmailSenderController(UserManager<User> userManager, IEmailService emailService, JwtTokenService tokenService) : ControllerBase
     {
         [HttpPost("request-confirmation-code")]
         public async Task<IActionResult> RequestConfirmationCode([FromBody] string email)
@@ -17,33 +19,39 @@ namespace MinM_API.Controllers
             var user = await userManager.FindByEmailAsync(email);
             if (user == null) return NotFound("User not found");
 
-            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken = WebUtility.UrlEncode(token);
+            var code = LuhnCodeGenerator.Generate6DigitCode();
+            var token = tokenService.CreateCodeToken(email, code, TimeSpan.FromMinutes(10));
 
-            await emailService.SendEmailAsync(email, "Код підтвердження", $"Ваш код: {encodedToken}");
+            await emailService.SendEmailAsync(email, "Код підтвердження", $"Ваш код: {code}");
 
-            return Ok("Код надіслано");
+            return Ok(new { token });
         }
 
         [HttpPost("confirm-email")]
-        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest request)
+        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmWithTokenRequest request)
         {
-            var user = await userManager.FindByEmailAsync(request.Email);
-            if (user == null) return NotFound("User not found");
+            var (isValid, email, actualCode) = tokenService.ValidateCodeToken(request.Token);
+            if (!isValid)
+                return BadRequest("Invalid or expired token.");
 
-            var token = WebUtility.UrlDecode(request.Token);
+            if (email != request.Email || actualCode != request.Code)
+                return BadRequest("Invalid code or email.");
 
-            var result = await userManager.ConfirmEmailAsync(user, token);
-            return result.Succeeded
-                ? Ok("Email confirmed successfully.")
-                : BadRequest("Invalid or expired token.");
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null)
+                return NotFound("User not found");
+
+            user.EmailConfirmed = true;
+            await userManager.UpdateAsync(user);
+
+            return Ok("Email confirmed successfully.");
         }
 
-        public class ConfirmEmailRequest
+        public class ConfirmWithTokenRequest
         {
             public string Email { get; set; } = string.Empty;
+            public string Code { get; set; } = string.Empty;
             public string Token { get; set; } = string.Empty;
         }
     }
-
 }
