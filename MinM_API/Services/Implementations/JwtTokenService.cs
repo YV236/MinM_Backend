@@ -42,11 +42,10 @@ namespace MinM_API.Services.Implementations
 
             var descriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
+                Subject = new ClaimsIdentity([
                 new Claim("email", email),
-                new Claim("code", code),
-            }),
+                new Claim("code", code)
+            ]),
                 Expires = DateTime.UtcNow.Add(lifetime),
                 SigningCredentials = new SigningCredentials
                 (new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!)), SecurityAlgorithms.HmacSha256Signature)

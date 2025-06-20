@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MinM_API.Services.Implementations
 {
-    public class CheckProductFreshnessService(IServiceProvider serviceProvider, ILogger<CheckProductFreshnessService> logger) : BackgroundService
+    public class CheckProductFreshnessService(IServiceProvider scopeFactory, ILogger<CheckProductFreshnessService> logger) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -14,30 +14,29 @@ namespace MinM_API.Services.Implementations
             {
                 try
                 {
-                    using (var scope = serviceProvider.CreateScope())
+                    using var scope = scopeFactory.CreateScope();
+
+                    var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+                    var thresholdDate = DateTime.UtcNow.AddDays(-90);
+
+                    var productsToUpdate = await dbContext.Products
+                        .Where(p => p.IsNew && p.DateOfCreation < thresholdDate)
+                        .ToListAsync(stoppingToken);
+
+                    if (productsToUpdate.Count != 0)
                     {
-                        var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-                        
-                        var thresholdDate = DateTime.UtcNow.AddDays(-90);
-                        
-                        var productsToUpdate = await dbContext.Products
-                            .Where(p => p.IsNew && p.DateOfCreation < thresholdDate)
-                            .ToListAsync(stoppingToken);
-                        
-                        if (productsToUpdate.Any())
+                        foreach (var product in productsToUpdate)
                         {
-                            foreach (var product in productsToUpdate)
-                            {
-                                product.IsNew = false;
-                            }
-                            await dbContext.SaveChangesAsync(stoppingToken);
-                            
-                            logger.LogInformation($"Updated {productsToUpdate.Count} products' IsNew flag to false.");
+                            product.IsNew = false;
                         }
-                        else
-                        {
-                            logger.LogInformation("No products needed IsNew flag update.");
-                        }
+                        await dbContext.SaveChangesAsync(stoppingToken);
+
+                        logger.LogInformation("Updated {Count} products' IsNew flag to false.", productsToUpdate.Count);
+                    }
+                    else
+                    {
+                        logger.LogInformation("No products needed IsNew flag update.");
                     }
                 }
                 catch (Exception ex)

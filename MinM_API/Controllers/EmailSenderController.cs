@@ -17,7 +17,11 @@ namespace MinM_API.Controllers
         public async Task<IActionResult> RequestConfirmationCode([FromBody] string email)
         {
             var user = await userManager.FindByEmailAsync(email);
-            if (user == null) return NotFound("User not found");
+
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
 
             var code = LuhnCodeGenerator.Generate6DigitCode();
             var token = tokenService.CreateCodeToken(email, code, TimeSpan.FromMinutes(10));
@@ -31,15 +35,23 @@ namespace MinM_API.Controllers
         public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmWithTokenRequest request)
         {
             var (isValid, email, actualCode) = tokenService.ValidateCodeToken(request.Token);
+
             if (!isValid)
+            {
                 return BadRequest("Invalid or expired token.");
+            }
 
             if (email != request.Email || actualCode != request.Code)
-                return BadRequest("Invalid code or email.");
+            { 
+                return BadRequest("Invalid code or email."); 
+            }
 
             var user = await userManager.FindByEmailAsync(email);
+
             if (user == null)
+            {
                 return NotFound("User not found");
+            }
 
             user.EmailConfirmed = true;
             await userManager.UpdateAsync(user);
