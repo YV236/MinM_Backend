@@ -69,6 +69,13 @@ namespace MinM_API.Services.Implementations
                     }
                 }
 
+                var colors = JsonSerializer.Deserialize<List<ColorDto>>(addProductDto.ProductColorsJson, jsonOptions);
+
+                foreach(var color in colors)
+                {
+                    product.Colors.Add(await AddProductColor(color));
+                }
+
                 context.Products.Add(product);
                 await context.SaveChangesAsync();
 
@@ -311,6 +318,20 @@ namespace MinM_API.Services.Implementations
                         IsStock = variantDto.IsStock
                     });
                 }
+            }
+        }
+
+        private async Task<Color> AddProductColor(ColorDto colorDto)
+        {
+            var color = context.Colors.FirstOrDefault(c => c.ColorHex == colorDto.ColorHex);
+
+            if (color is null)
+            {
+                return new Color() { Id = Guid.NewGuid().ToString(), Name = colorDto.Name, ColorHex = colorDto.ColorHex };
+            }
+            else
+            {
+                return color;
             }
         }
     }
