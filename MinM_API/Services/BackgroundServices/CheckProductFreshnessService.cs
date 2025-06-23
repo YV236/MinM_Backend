@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using MinM_API.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace MinM_API.Services.Implementations
+namespace MinM_API.Services.BackgroundServices
 {
     public class CheckProductFreshnessService(IServiceProvider scopeFactory, ILogger<CheckProductFreshnessService> logger) : BackgroundService
     {

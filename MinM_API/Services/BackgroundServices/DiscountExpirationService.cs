@@ -2,7 +2,7 @@
 using MinM_API.Data;
 using System.Linq;
 
-namespace MinM_API.Services.Implementations
+namespace MinM_API.Services.BackgroundServices
 {
     public class DiscountExpirationService(IServiceScopeFactory scopeFactory, ILogger<DiscountExpirationService> logger) : BackgroundService
     {
