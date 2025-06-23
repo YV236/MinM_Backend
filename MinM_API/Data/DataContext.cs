@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MinM_API.Models;
+using System.Reflection.Emit;
 
 namespace MinM_API.Data
 {
@@ -31,6 +32,7 @@ namespace MinM_API.Data
         public DbSet<Review> Reviews { get; set; }
 
         public DbSet<WishlistItem> WishlistItems { get; set; }
+        public DbSet<ProductColor> ProductColors { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -147,7 +149,29 @@ namespace MinM_API.Data
 
             builder.Entity<Category>()
                 .HasIndex(c => c.Name)
-                .IsUnique();
+            .IsUnique();
+
+            builder.Entity<Product>()
+           .HasMany(p => p.ProductColors)
+           .WithMany(pc => pc.Products)
+           .UsingEntity<Dictionary<string, string>>(
+               "ProductProductColors",
+               j => j
+                   .HasOne<ProductColor>()
+                   .WithMany()
+                   .HasForeignKey("ProductColorId")
+                   .OnDelete(DeleteBehavior.Cascade),
+               j => j
+                   .HasOne<Product>()
+                   .WithMany()
+                   .HasForeignKey("ProductId")
+                   .OnDelete(DeleteBehavior.Cascade),
+               j =>
+               {
+                   j.HasKey("ProductId", "ProductColorId");
+                   j.ToTable("ProductProductColors");
+               }
+           );
         }
     }
 }
