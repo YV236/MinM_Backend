@@ -14,8 +14,11 @@ namespace MinM_API.Dtos.Products
         public string ProductVariantsJson { get; set; } = string.Empty;
 
         public string CategoryId { get; set; } = string.Empty;
+
+        [FromForm(Name = "ProductColorsJson")]
+        public string ProductColorsJson { get; set; } = string.Empty;
+
         public string SKU { get; set; } = string.Empty;
         public List<IFormFile> Images { get; set; } = [];
     }
-
 }
