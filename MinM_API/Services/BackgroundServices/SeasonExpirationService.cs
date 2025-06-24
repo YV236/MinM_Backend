@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
 
-namespace MinM_API.Services.Implementations
+namespace MinM_API.Services.BackgroundServices
 {
     public class SeasonExpirationService(IServiceScopeFactory scopeFactory, ILogger<SeasonExpirationService> logger) : BackgroundService
     {

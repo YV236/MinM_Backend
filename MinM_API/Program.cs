@@ -12,6 +12,7 @@ using MinM_API.Mappers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MinM_API.Services.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
