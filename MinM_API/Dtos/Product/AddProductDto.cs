@@ -3,7 +3,7 @@ using MinM_API.Dtos.ProductVariant;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
-namespace MinM_API.Dtos.Products
+namespace MinM_API.Dtos.Product
 {
     public class AddProductDto
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MinM_API.Dtos.ProductVariant;
 
-namespace MinM_API.Dtos.Products
+namespace MinM_API.Dtos.Product
 {
     public class UpdateProductDto
     {

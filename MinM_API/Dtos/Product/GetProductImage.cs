@@ -1,4 +1,4 @@
-﻿namespace MinM_API.Dtos.Products
+﻿namespace MinM_API.Dtos.Product
 {
     public class GetProductImageDto
     {

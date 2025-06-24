@@ -42,8 +42,8 @@ namespace MinM_API.Controllers
             }
 
             if (email != request.Email || actualCode != request.Code)
-            { 
-                return BadRequest("Invalid code or email."); 
+            {
+                return BadRequest("Invalid code or email.");
             }
 
             var user = await userManager.FindByEmailAsync(email);

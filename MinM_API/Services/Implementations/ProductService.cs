@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
 using MinM_API.Dtos;
-using MinM_API.Dtos.Products;
+using MinM_API.Dtos.Product;
 using MinM_API.Dtos.ProductVariant;
 using MinM_API.Extension;
 using MinM_API.Mappers;
@@ -71,7 +71,7 @@ namespace MinM_API.Services.Implementations
 
                 var colors = JsonSerializer.Deserialize<List<ColorDto>>(addProductDto.ProductColorsJson, jsonOptions);
 
-                foreach(var color in colors)
+                foreach (var color in colors)
                 {
                     product.Colors.Add(await AddProductColor(color));
                 }

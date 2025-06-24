@@ -1,4 +1,4 @@
-﻿using MinM_API.Dtos.Products;
+﻿using MinM_API.Dtos.Product;
 using MinM_API.Models;
 using Riok.Mapperly.Abstractions;
 

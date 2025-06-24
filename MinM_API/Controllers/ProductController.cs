@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MinM_API.Dtos;
-using MinM_API.Dtos.Products;
+using MinM_API.Dtos.Product;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
 
