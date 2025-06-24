@@ -16,5 +16,6 @@ namespace MinM_API.Dtos.Products
         public string CategoryName { get; set; } = string.Empty;
         public string SKU { get; set; } = string.Empty; // Product article
         public virtual List<GetProductImageDto> ProductImages { get; set; } = []; // Product photo
+        public virtual List<ColorDto> Colors { get; set; }
     }
 }

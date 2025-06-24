@@ -140,6 +140,7 @@ namespace MinM_API.Services.Implementations
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
                     .Include(p => p.ProductImages)
+                    .Include(p => p.Colors)
                     .ToListAsync();
 
                 if (productsList == null || productsList.Count == 0)
@@ -174,6 +175,7 @@ namespace MinM_API.Services.Implementations
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
                     .Include(p => p.ProductImages)
+                    .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (product == null)
@@ -201,6 +203,7 @@ namespace MinM_API.Services.Implementations
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
                     .Include(p => p.ProductImages)
+                    .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Slug == slug);
 
                 if (product == null)
