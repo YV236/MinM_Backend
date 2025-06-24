@@ -119,6 +119,10 @@ namespace MinM_API.Services.Implementations
 
                 UpdateProductVariants(product, variants, discount);
 
+                var colors = JsonSerializer.Deserialize<List<ColorDto>>(updateProductDto.ProductColorsJson, jsonOptions);
+
+                await UpdateProductColors(product, colors);
+
                 await context.SaveChangesAsync();
                 return ResponseFactory.Success(1, "Product successfully updated");
             }
@@ -247,7 +251,7 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task UpdateProductImagesAsync(
+        private async Task UpdateProductImagesAsync(
             Product product,
             List<string> existingImageUrls,
             List<IFormFile> newImages)
@@ -332,6 +336,48 @@ namespace MinM_API.Services.Implementations
             else
             {
                 return color;
+            }
+        }
+
+        private async Task UpdateProductColors(Product product, List<ColorDto> ColorsDto)
+        {
+            var colorHexes = ColorsDto.Select(c => c.ColorHex).ToList();
+
+            var existingColors = await context.Colors
+                .Where(c => colorHexes.Contains(c.ColorHex))
+                .ToListAsync();
+
+            var existingHexCodes = existingColors.Select(c => c.ColorHex).ToHashSet();
+
+            var missingColorDtos = ColorsDto
+                .Where(dto => !existingHexCodes.Contains(dto.ColorHex))
+                .ToList();
+
+            var newColors = new List<Color>();
+
+            foreach (var colorDto in missingColorDtos)
+            {
+                var newColor = new Color
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = colorDto.Name,
+                    ColorHex = colorDto.ColorHex
+                };
+                newColors.Add(newColor);
+                context.Colors.Add(newColor);
+            }
+
+            if (newColors.Any())
+            {
+                await context.SaveChangesAsync();
+            }
+
+            var allColors = existingColors.Concat(newColors).ToList();
+
+            product.Colors.Clear();
+            foreach (var color in allColors)
+            {
+                product.Colors.Add(color);
             }
         }
     }
