@@ -25,7 +25,7 @@ namespace MinM_API.Models
         public virtual Category Category { get; set; } = null!;
         public string SKU { get; set; } = string.Empty; // Product article
         public virtual List<ProductImage> ProductImages { get; set; } = []; // Product photo
-        public virtual List<Color> Colors { get; set; } = [];
+        public virtual List<Color>? Colors { get; set; } = [];
         public virtual List<User> UsersWithThisProductInCart { get; set; } = [];
     }
 }

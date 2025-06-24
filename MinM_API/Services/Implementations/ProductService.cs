@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Product;
@@ -41,8 +42,8 @@ namespace MinM_API.Services.Implementations
                 {
                     return ResponseFactory.Error("", $"You already have a product with this name '{product.Name}'", HttpStatusCode.BadRequest);
                 }
-
-                var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, jsonOptions);
+                
+                var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, jsonOptions);                
 
                 foreach (var productVariant in variants)
                 {
@@ -69,11 +70,14 @@ namespace MinM_API.Services.Implementations
                     }
                 }
 
-                var colors = JsonSerializer.Deserialize<List<ColorDto>>(addProductDto.ProductColorsJson, jsonOptions);
-
-                foreach (var color in colors)
+                if (!addProductDto.ProductColorsJson.IsNullOrEmpty())
                 {
-                    product.Colors.Add(await AddProductColor(color));
+                    var colors = JsonSerializer.Deserialize<List<ColorDto>>(addProductDto.ProductColorsJson, jsonOptions);
+
+                    foreach (var color in colors)
+                    {
+                        product.Colors.Add(await AddProductColor(color));
+                    }
                 }
 
                 context.Products.Add(product);
@@ -119,9 +123,11 @@ namespace MinM_API.Services.Implementations
 
                 UpdateProductVariants(product, variants, discount);
 
-                var colors = JsonSerializer.Deserialize<List<ColorDto>>(updateProductDto.ProductColorsJson, jsonOptions);
-
-                await UpdateProductColors(product, colors);
+                if (updateProductDto.ProductColorsJson.IsNullOrEmpty())
+                {
+                    var colors = JsonSerializer.Deserialize<List<ColorDto>>(updateProductDto.ProductColorsJson, jsonOptions);
+                    await UpdateProductColors(product, colors);
+                }
 
                 await context.SaveChangesAsync();
                 return ResponseFactory.Success(1, "Product successfully updated");
@@ -330,7 +336,7 @@ namespace MinM_API.Services.Implementations
 
         private async Task<Color> AddProductColor(ColorDto colorDto)
         {
-            var color = context.Colors.FirstOrDefault(c => c.ColorHex == colorDto.ColorHex);
+            var color = await context.Colors.FirstOrDefaultAsync(c => c.ColorHex == colorDto.ColorHex);
 
             if (color is null)
             {
