@@ -25,6 +25,11 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(addProductDto.Name))
+                {
+                    return ResponseFactory.Error("", "Product name is required", HttpStatusCode.BadRequest);
+                }
+
                 var product = new Product()
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -42,6 +47,11 @@ namespace MinM_API.Services.Implementations
                 {
                     return ResponseFactory.Error("", $"You already have a product with this name '{product.Name}'", HttpStatusCode.BadRequest);
                 }
+
+                if (addProductDto.ProductVariantsJson.IsNullOrEmpty())
+                {
+                    return ResponseFactory.Error("", "Product must have at least one variant", HttpStatusCode.BadRequest);
+                }
                 
                 var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, jsonOptions);                
 
@@ -57,14 +67,23 @@ namespace MinM_API.Services.Implementations
                     });
                 }
 
-                if (addProductDto.Images != null)
+                if (addProductDto.Images?.Count != 0 && addProductDto.ImageSequenceNumbers?.Count != 0)
                 {
-                    foreach (var image in addProductDto.Images)
+                    if (addProductDto.Images.Count != addProductDto.ImageSequenceNumbers.Count)
                     {
+                        return ResponseFactory.Error("", "Number of images must match number of sequence numbers", HttpStatusCode.BadRequest);
+                    }
+
+                    for (int i = 0; i < addProductDto.Images.Count; i++)
+                    {
+                        var image = addProductDto.Images[i];
+                        var sequenceNumber = addProductDto.ImageSequenceNumbers[i];
+
                         product.ProductImages.Add(new ProductImage()
                         {
                             Id = Guid.NewGuid().ToString(),
                             ProductId = product.Id,
+                            SequenceNumber = sequenceNumber,
                             FilePath = await photoService.UploadImageAsync(image)
                         });
                     }
@@ -84,6 +103,11 @@ namespace MinM_API.Services.Implementations
                 await context.SaveChangesAsync();
 
                 return ResponseFactory.Success(product.Id, "Product successfully added");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "JSON deserialization error while adding product. Name: {ProductName}", addProductDto.Name);
+                return ResponseFactory.Error("", "Invalid JSON format in request data", HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
             {
@@ -132,6 +156,11 @@ namespace MinM_API.Services.Implementations
                 await context.SaveChangesAsync();
                 return ResponseFactory.Success(1, "Product successfully updated");
             }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "JSON deserialization error while adding product. Name: {ProductName}", updateProductDto.Name);
+                return ResponseFactory.Error(0, "Invalid JSON format in request data", HttpStatusCode.BadRequest);
+            }
             catch (Exception)
             {
                 return ResponseFactory.Error(0, "Internal error");
@@ -145,7 +174,7 @@ namespace MinM_API.Services.Implementations
                 var productsList = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages)
+                    .Include(p => p.ProductImages[0])
                     .Include(p => p.Colors)
                     .ToListAsync();
 
@@ -180,7 +209,7 @@ namespace MinM_API.Services.Implementations
                 var product = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages)
+                    .Include(p => p.ProductImages.OrderBy(pi=>pi.SequenceNumber))
                     .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -208,7 +237,7 @@ namespace MinM_API.Services.Implementations
                 var product = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages)
+                    .Include(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
                     .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Slug == slug);
 
