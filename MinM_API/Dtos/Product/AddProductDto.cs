@@ -20,5 +20,6 @@ namespace MinM_API.Dtos.Product
 
         public string SKU { get; set; } = string.Empty;
         public List<IFormFile> Images { get; set; } = [];
+        public List<int> ImageSequenceNumbers { get; set; } = [];
     }
 }
