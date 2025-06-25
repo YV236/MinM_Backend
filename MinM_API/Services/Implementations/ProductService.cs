@@ -174,7 +174,7 @@ namespace MinM_API.Services.Implementations
                 var productsList = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages[0])
+                    .Include(p => p.ProductImages)
                     .Include(p => p.Colors)
                     .ToListAsync();
 
