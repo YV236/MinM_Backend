@@ -147,7 +147,7 @@ namespace MinM_API.Services.Implementations
 
                 UpdateProductVariants(product, variants, discount);
 
-                if (updateProductDto.ProductColorsJson.IsNullOrEmpty())
+                if (!updateProductDto.ProductColorsJson.IsNullOrEmpty())
                 {
                     var colors = JsonSerializer.Deserialize<List<ColorDto>>(updateProductDto.ProductColorsJson, jsonOptions);
                     await UpdateProductColors(product, colors);
@@ -209,7 +209,7 @@ namespace MinM_API.Services.Implementations
                 var product = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages.OrderBy(pi=>pi.SequenceNumber))
+                    .Include(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
                     .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
