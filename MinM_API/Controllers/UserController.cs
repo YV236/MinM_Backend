@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MinM_API.Dtos;
+using MinM_API.Dtos.RefreshToken;
 using MinM_API.Dtos.User;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
@@ -47,6 +48,13 @@ namespace MinM_API.Controllers
         {
             var response = await _userService.Login(model);
 
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpPost("RefreshToken")]
+        public async Task<ActionResult<ServiceResponse<TokenResponse>>> RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            var response = await _userService.RefreshToken(request);
             return StatusCode((int)response.StatusCode, response);
         }
     }

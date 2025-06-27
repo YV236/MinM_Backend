@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MinM_API.Data;
 using MinM_API.Dtos;
+using MinM_API.Dtos.RefreshToken;
 using MinM_API.Dtos.User;
 using MinM_API.Extension;
 using MinM_API.Mappers;
@@ -20,20 +22,20 @@ namespace MinM_API.Services.Implementations
         DataContext context, UserMapper mapper, ILogger<UserService> logger,
         JwtTokenService jwtTokenService) : IUserService
     {
-        public async Task<ServiceResponse<string>> Login(LoginDto loginDto)
+        public async Task<ServiceResponse<TokenResponse>> Login(LoginDto loginDto)
         {
             var user = await userManager.FindByEmailAsync(loginDto.Email);
 
             if (user == null || !await userManager.CheckPasswordAsync(user, loginDto.Password))
             {
-                return ResponseFactory.Error("",
+                return ResponseFactory.Error(new TokenResponse(),
                     "Error while registering. Some of the properties may be filled incorrectly",
                     HttpStatusCode.UnprocessableEntity);
             }
 
             var roles = await userManager.GetRolesAsync(user);
 
-            return ResponseFactory.Success(jwtTokenService.CreateUserToken(user, roles), "User loged in successfully");
+            return ResponseFactory.Success(await jwtTokenService.CreateUserTokenAsync(user, roles), "User logged in successfully");
         }
 
 
@@ -174,6 +176,61 @@ namespace MinM_API.Services.Implementations
             {
                 logger.LogError(ex, "Fail: Error while updating data. Input data: {@UserUpdaterDto}", userUpdateDto);
                 return ResponseFactory.Error(new GetUserDto(), "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<TokenResponse>> RefreshToken(RefreshTokenRequest request)
+        {
+            try
+            {
+                var principal = jwtTokenService.GetPrincipalFromExpiredToken(request.AccessToken);
+                if (principal == null)
+                {
+                    logger.LogWarning("Invalid access token provided for refresh");
+                    return ResponseFactory.Error(new TokenResponse(),
+                        "Invalid access token",
+                        HttpStatusCode.BadRequest);
+                }
+
+                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return ResponseFactory.Error(new TokenResponse(),
+                        "Invalid token claims",
+                        HttpStatusCode.BadRequest);
+                }
+
+                var user = await jwtTokenService.GetUserByRefreshTokenAsync(request.RefreshToken);
+                if (user == null || user.Id != userId)
+                {
+                    logger.LogWarning("Invalid refresh token for user {UserId}", userId);
+                    return ResponseFactory.Error(new TokenResponse(),
+                        "Invalid refresh token",
+                        HttpStatusCode.Unauthorized);
+                }
+
+                await jwtTokenService.RevokeRefreshTokenAsync(request.RefreshToken);
+
+                var roles = await userManager.GetRolesAsync(user);
+                var newTokenResponse = await jwtTokenService.CreateUserTokenAsync(user, roles);
+
+                logger.LogInformation("Token refreshed successfully for user {UserId}", user.Id);
+
+                return ResponseFactory.Success(newTokenResponse, "Token refreshed successfully");
+            }
+            catch (SecurityTokenException ex)
+            {
+                logger.LogWarning(ex, "Security token exception during refresh");
+                return ResponseFactory.Error(new TokenResponse(),
+                    "Invalid token",
+                    HttpStatusCode.Unauthorized);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error during token refresh");
+                return ResponseFactory.Error(new TokenResponse(),
+                    "Token refresh failed",
+                    HttpStatusCode.InternalServerError);
             }
         }
 
