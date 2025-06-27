@@ -35,6 +35,8 @@ namespace MinM_API.Data
 
         public DbSet<Color> Colors { get; set; }
 
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -156,6 +158,27 @@ namespace MinM_API.Data
                 .HasMany(p => p.Colors)
                 .WithMany(c => c.Products)
                 .UsingEntity(j => j.ToTable("ProductColors"));
+
+            builder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(rt => rt.Id);
+
+                entity.HasIndex(rt => rt.Token)
+                      .IsUnique();
+
+                entity.HasIndex(rt => rt.UserId);
+
+                entity.HasIndex(rt => rt.ExpiryDate);
+
+                entity.HasOne(rt => rt.User)
+                      .WithMany(u => u.RefreshTokens)
+                      .HasForeignKey(rt => rt.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(rt => rt.Token)
+                      .HasMaxLength(500)
+                      .IsRequired();
+            });
         }
     }
 }

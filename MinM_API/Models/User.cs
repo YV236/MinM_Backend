@@ -13,5 +13,6 @@ namespace MinM_API.Models
         public DateTime DateOfCreation { get; set; }
         public virtual List<Product>? Cart { get; set; }
         public virtual List<Order>? History { get; set; }
+        public virtual List<RefreshToken>? RefreshTokens { get; set; }
     }
 }
