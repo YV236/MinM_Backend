@@ -43,14 +43,9 @@ namespace MinM_API.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto model)
+        public async Task<ActionResult<ServiceResponse<TokenResponse>>> Login([FromBody] LoginDto model)
         {
             var response = await _userService.Login(model);
-
-            if (response.Data.IsNullOrEmpty())
-            {
-                return StatusCode((int)response.StatusCode, response);
-            }
 
             return StatusCode((int)response.StatusCode, response);
         }
