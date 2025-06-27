@@ -1,4 +1,4 @@
-﻿namespace MinM_API.Dtos
+﻿namespace MinM_API.Dtos.RefreshToken
 {
     public class TokenResponse
     {
