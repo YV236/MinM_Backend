@@ -7,6 +7,7 @@ using MinM_API.Dtos.RefreshToken;
 using MinM_API.Dtos.User;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
+using System.Net.Security;
 
 namespace MinM_API.Controllers
 {
@@ -52,9 +53,17 @@ namespace MinM_API.Controllers
         }
 
         [HttpPost("RefreshToken")]
-        public async Task<ActionResult<ServiceResponse<TokenResponse>>> RefreshToken([FromBody] RefreshTokenRequest request)
+        public async Task<ActionResult<ServiceResponse<TokenResponse>>> RefreshToken([FromBody] TokenRequest request)
         {
             var response = await _userService.RefreshToken(request);
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpPost("Logout")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<int>>> Logout([FromBody] TokenRequest request)
+        {
+            var response = await _userService.Logout(request);
             return StatusCode((int)response.StatusCode, response);
         }
     }
