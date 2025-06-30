@@ -156,7 +156,7 @@ namespace MinM_API.Services.Implementations
                     ClockSkew = TimeSpan.Zero
                 }, out _);
 
-                var email = claims.FindFirst("email")?.Value;
+                var email = claims.FindFirst(ClaimTypes.Email)?.Value;
                 var code = claims.FindFirst("code")?.Value;
 
                 return (true, email ?? "", code ?? "");
