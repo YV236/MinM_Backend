@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MinM_API.Dtos;
+using MinM_API.Dtos.RefreshToken;
 using MinM_API.Dtos.User;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
+using System.Net.Security;
 
 namespace MinM_API.Controllers
 {
@@ -43,15 +45,25 @@ namespace MinM_API.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto model)
+        public async Task<ActionResult<ServiceResponse<TokenResponse>>> Login([FromBody] LoginDto model)
         {
             var response = await _userService.Login(model);
 
-            if (response.Data.IsNullOrEmpty())
-            {
-                return StatusCode((int)response.StatusCode, response);
-            }
+            return StatusCode((int)response.StatusCode, response);
+        }
 
+        [HttpPost("RefreshToken")]
+        public async Task<ActionResult<ServiceResponse<TokenResponse>>> RefreshToken([FromBody] TokenRequest request)
+        {
+            var response = await _userService.RefreshToken(request);
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpPost("Logout")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<int>>> Logout([FromBody] TokenRequest request)
+        {
+            var response = await _userService.Logout(request);
             return StatusCode((int)response.StatusCode, response);
         }
     }
