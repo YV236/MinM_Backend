@@ -2,7 +2,7 @@
 
 namespace MinM_API.Dtos.RefreshToken
 {
-    public class RefreshTokenRequest
+    public class TokenRequest
     {
         public string AccessToken { get; set; } = string.Empty;
 

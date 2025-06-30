@@ -11,6 +11,7 @@ namespace MinM_API.Services.Interfaces
         Task<ServiceResponse<int>> Register(UserRegisterDto userRegisterDto);
         Task<ServiceResponse<GetUserDto>> UpdateUserInfo(ClaimsPrincipal user, UpdateUserDto userUpdateDto);
         Task<ServiceResponse<TokenResponse>> Login(LoginDto loginDto);
-        Task<ServiceResponse<TokenResponse>> RefreshToken(RefreshTokenRequest request);
+        Task<ServiceResponse<TokenResponse>> RefreshToken(TokenRequest request);
+        Task<ServiceResponse<int>> Logout(TokenRequest request);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MinM_API.Data;
@@ -179,7 +180,7 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task<ServiceResponse<TokenResponse>> RefreshToken(RefreshTokenRequest request)
+        public async Task<ServiceResponse<TokenResponse>> RefreshToken(TokenRequest request)
         {
             try
             {
@@ -229,6 +230,41 @@ namespace MinM_API.Services.Implementations
             {
                 logger.LogError(ex, "Error during token refresh");
                 return ResponseFactory.Error(new TokenResponse(),
+                    "Token refresh failed",
+                    HttpStatusCode.InternalServerError);
+            }
+        }
+
+        public async Task<ServiceResponse<int>> Logout(TokenRequest request)
+        {
+            try
+            {
+                var user = await jwtTokenService.GetUserByRefreshTokenAsync(request.RefreshToken);
+                if (user == null)
+                {
+                    logger.LogWarning("Invalid refresh token for user {UserId}", user.Id);
+                    return ResponseFactory.Error(0,
+                        "Invalid refresh token",
+                        HttpStatusCode.Unauthorized);
+                }
+
+                await jwtTokenService.RevokeRefreshTokenAsync(request.RefreshToken);
+
+                logger.LogInformation("Token refreshed successfully for user {UserId}", user.Id);
+
+                return ResponseFactory.Success(1, "User logged out successfully");
+            }
+            catch (SecurityTokenException ex)
+            {
+                logger.LogWarning(ex, "Security token exception during refresh");
+                return ResponseFactory.Error(0,
+                    "Invalid token",
+                    HttpStatusCode.Unauthorized);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error during token refresh");
+                return ResponseFactory.Error(0,
                     "Token refresh failed",
                     HttpStatusCode.InternalServerError);
             }
