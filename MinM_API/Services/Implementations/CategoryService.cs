@@ -3,7 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Category;
-using MinM_API.Dtos.Products;
+using MinM_API.Dtos.Product;
 using MinM_API.Extension;
 using MinM_API.Mappers;
 using MinM_API.Migrations;

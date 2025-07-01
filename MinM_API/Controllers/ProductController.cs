@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using MinM_API.Data;
 using MinM_API.Dtos;
-using MinM_API.Dtos.Products;
+using MinM_API.Dtos.Product;
 using MinM_API.Services.Implementations;
 using MinM_API.Services.Interfaces;
 
@@ -10,7 +14,7 @@ namespace MinM_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductController(IProductService productService) : ControllerBase
+    public class ProductController(IProductService productService, DataContext context) : ControllerBase
     {
         [HttpPost]
         [Route("Create")]
@@ -65,6 +69,32 @@ namespace MinM_API.Controllers
         public async Task<ActionResult<ServiceResponse<GetProductDto>>> GetProductBySlug(string slug)
         {
             var response = await productService.GetProductBySlug(slug);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpGet("GetAllColors")]
+        public async Task<ActionResult<ServiceResponse<List<ColorDto>>>> GetAllColors()
+        {
+            var response = new ServiceResponse<List<ColorDto>>();
+
+            var colors = await context.Colors.ToListAsync();
+
+            var colorDtos= new List<ColorDto>();
+
+            foreach(var color in colors)
+            {
+                colorDtos.Add(new ColorDto
+                {
+                    Name = color.Name,
+                    ColorHex = color.ColorHex,
+                });
+            }
+
+            response.Data = colorDtos;
+            response.IsSuccessful = true;
+            response.Message = "Successed";
+            response.StatusCode = HttpStatusCode.OK;
 
             return StatusCode((int)response.StatusCode, response);
         }

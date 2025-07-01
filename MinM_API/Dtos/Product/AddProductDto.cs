@@ -3,7 +3,7 @@ using MinM_API.Dtos.ProductVariant;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
-namespace MinM_API.Dtos.Products
+namespace MinM_API.Dtos.Product
 {
     public class AddProductDto
     {
@@ -14,8 +14,12 @@ namespace MinM_API.Dtos.Products
         public string ProductVariantsJson { get; set; } = string.Empty;
 
         public string CategoryId { get; set; } = string.Empty;
+
+        [FromForm(Name = "ProductColorsJson")]
+        public string? ProductColorsJson { get; set; } = string.Empty;
+
         public string SKU { get; set; } = string.Empty;
         public List<IFormFile> Images { get; set; } = [];
+        public List<int> ImageSequenceNumbers { get; set; } = [];
     }
-
 }

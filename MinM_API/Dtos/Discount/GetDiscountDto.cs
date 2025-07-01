@@ -1,4 +1,4 @@
-﻿using MinM_API.Dtos.Products;
+﻿using MinM_API.Dtos.Product;
 
 namespace MinM_API.Dtos.Discount
 {

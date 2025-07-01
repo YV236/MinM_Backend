@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MinM_API.Dtos.ProductVariant;
 
-namespace MinM_API.Dtos.Products
+namespace MinM_API.Dtos.Product
 {
     public class UpdateProductDto
     {
@@ -10,6 +10,7 @@ namespace MinM_API.Dtos.Products
         [FromForm] public string Description { get; set; } = string.Empty;
         [FromForm(Name = "ProductVariantsJson")] public string ProductVariantsJson { get; set; } = string.Empty;
         [FromForm] public string CategoryId { get; set; } = string.Empty;
+        [FromForm(Name = "ProductColorsJson")] public string? ProductColorsJson { get; set; } = string.Empty;
         [FromForm] public string SKU { get; set; } = string.Empty;
         [FromForm] public List<string> ExistingImageUrls { get; set; } = [];
         [FromForm] public List<IFormFile> NewImages { get; set; } = [];

@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MinM_API.Data;
 using MinM_API.Dtos;
-using MinM_API.Dtos.Products;
+using MinM_API.Dtos.Product;
 using MinM_API.Dtos.ProductVariant;
 using MinM_API.Extension;
 using MinM_API.Mappers;
@@ -24,6 +25,11 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(addProductDto.Name))
+                {
+                    return ResponseFactory.Error("", "Product name is required", HttpStatusCode.BadRequest);
+                }
+
                 var product = new Product()
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -42,7 +48,12 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error("", $"You already have a product with this name '{product.Name}'", HttpStatusCode.BadRequest);
                 }
 
-                var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, jsonOptions);
+                if (addProductDto.ProductVariantsJson.IsNullOrEmpty())
+                {
+                    return ResponseFactory.Error("", "Product must have at least one variant", HttpStatusCode.BadRequest);
+                }
+                
+                var variants = JsonSerializer.Deserialize<List<AddProductVariantDto>>(addProductDto.ProductVariantsJson, jsonOptions);                
 
                 foreach (var productVariant in variants)
                 {
@@ -56,16 +67,35 @@ namespace MinM_API.Services.Implementations
                     });
                 }
 
-                if (addProductDto.Images != null)
+                if (addProductDto.Images?.Count != 0 && addProductDto.ImageSequenceNumbers?.Count != 0)
                 {
-                    foreach (var image in addProductDto.Images)
+                    if (addProductDto.Images.Count != addProductDto.ImageSequenceNumbers.Count)
                     {
+                        return ResponseFactory.Error("", "Number of images must match number of sequence numbers", HttpStatusCode.BadRequest);
+                    }
+
+                    for (int i = 0; i < addProductDto.Images.Count; i++)
+                    {
+                        var image = addProductDto.Images[i];
+                        var sequenceNumber = addProductDto.ImageSequenceNumbers[i];
+
                         product.ProductImages.Add(new ProductImage()
                         {
                             Id = Guid.NewGuid().ToString(),
                             ProductId = product.Id,
+                            SequenceNumber = sequenceNumber,
                             FilePath = await photoService.UploadImageAsync(image)
                         });
+                    }
+                }
+
+                if (!addProductDto.ProductColorsJson.IsNullOrEmpty())
+                {
+                    var colors = JsonSerializer.Deserialize<List<ColorDto>>(addProductDto.ProductColorsJson, jsonOptions);
+
+                    foreach (var color in colors)
+                    {
+                        product.Colors.Add(await AddProductColor(color));
                     }
                 }
 
@@ -73,6 +103,11 @@ namespace MinM_API.Services.Implementations
                 await context.SaveChangesAsync();
 
                 return ResponseFactory.Success(product.Id, "Product successfully added");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "JSON deserialization error while adding product. Name: {ProductName}", addProductDto.Name);
+                return ResponseFactory.Error("", "Invalid JSON format in request data", HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
             {
@@ -112,8 +147,19 @@ namespace MinM_API.Services.Implementations
 
                 UpdateProductVariants(product, variants, discount);
 
+                if (!updateProductDto.ProductColorsJson.IsNullOrEmpty())
+                {
+                    var colors = JsonSerializer.Deserialize<List<ColorDto>>(updateProductDto.ProductColorsJson, jsonOptions);
+                    await UpdateProductColors(product, colors);
+                }
+
                 await context.SaveChangesAsync();
                 return ResponseFactory.Success(1, "Product successfully updated");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "JSON deserialization error while adding product. Name: {ProductName}", updateProductDto.Name);
+                return ResponseFactory.Error(0, "Invalid JSON format in request data", HttpStatusCode.BadRequest);
             }
             catch (Exception)
             {
@@ -129,6 +175,7 @@ namespace MinM_API.Services.Implementations
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
                     .Include(p => p.ProductImages)
+                    .Include(p => p.Colors)
                     .ToListAsync();
 
                 if (productsList == null || productsList.Count == 0)
@@ -162,7 +209,8 @@ namespace MinM_API.Services.Implementations
                 var product = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages)
+                    .Include(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
+                    .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (product == null)
@@ -189,7 +237,8 @@ namespace MinM_API.Services.Implementations
                 var product = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages)
+                    .Include(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
+                    .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Slug == slug);
 
                 if (product == null)
@@ -240,7 +289,7 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task UpdateProductImagesAsync(
+        private async Task UpdateProductImagesAsync(
             Product product,
             List<string> existingImageUrls,
             List<IFormFile> newImages)
@@ -311,6 +360,62 @@ namespace MinM_API.Services.Implementations
                         IsStock = variantDto.IsStock
                     });
                 }
+            }
+        }
+
+        private async Task<Color> AddProductColor(ColorDto colorDto)
+        {
+            var color = await context.Colors.FirstOrDefaultAsync(c => c.ColorHex == colorDto.ColorHex);
+
+            if (color is null)
+            {
+                return new Color() { Id = Guid.NewGuid().ToString(), Name = colorDto.Name, ColorHex = colorDto.ColorHex };
+            }
+            else
+            {
+                return color;
+            }
+        }
+
+        private async Task UpdateProductColors(Product product, List<ColorDto> ColorsDto)
+        {
+            var colorHexes = ColorsDto.Select(c => c.ColorHex).ToList();
+
+            var existingColors = await context.Colors
+                .Where(c => colorHexes.Contains(c.ColorHex))
+                .ToListAsync();
+
+            var existingHexCodes = existingColors.Select(c => c.ColorHex).ToHashSet();
+
+            var missingColorDtos = ColorsDto
+                .Where(dto => !existingHexCodes.Contains(dto.ColorHex))
+                .ToList();
+
+            var newColors = new List<Color>();
+
+            foreach (var colorDto in missingColorDtos)
+            {
+                var newColor = new Color
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = colorDto.Name,
+                    ColorHex = colorDto.ColorHex
+                };
+                newColors.Add(newColor);
+                context.Colors.Add(newColor);
+            }
+
+            if (newColors.Any())
+            {
+                await context.SaveChangesAsync();
+            }
+
+            var allColors = existingColors.Concat(newColors).ToList();
+
+            product.Colors.Clear();
+            foreach (var color in allColors)
+            {
+                product.Colors.Add(color);
             }
         }
     }
