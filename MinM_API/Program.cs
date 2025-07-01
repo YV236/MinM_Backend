@@ -91,6 +91,7 @@ builder.Services.AddScoped<IDiscountService, DiscountService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IWhishListService, WhishListService>();
 builder.Services.AddScoped<JwtTokenService>();
 
 builder.Services.AddSingleton<ProductMapper>();
