@@ -7,5 +7,6 @@ namespace MinM_API.Services.Interfaces
     public interface IWhishListService
     {
         Task<ServiceResponse<int>> AddProductToWishList(ClaimsPrincipal user, string productId);
+        Task<ServiceResponse<List<GetProductDto>>> GetAllProductsFromWhishList(ClaimsPrincipal user);
     }
 }

@@ -36,5 +36,39 @@ namespace MinM_API.Services.Implementations
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
+
+        public async Task<ServiceResponse<List<GetProductDto>>> GetAllProductsFromWhishList(ClaimsPrincipal user)
+        {
+            try
+            {
+                var userId = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+                if (userId.IsNullOrEmpty())
+                {
+                    logger.LogInformation("Fail: Fetching error. There's no user with such id: {userId}", userId);
+                    return ResponseFactory.Error(new List<GetProductDto>(), "There is no such user with such id");
+                }
+
+                var userProducts = context.WishlistItems
+                    .Where(wi => wi.UserId == userId)
+                    .Select(wi => wi.Product)
+                    .ToList();
+
+                var getProductList = new List<GetProductDto>();
+
+                foreach (var product in userProducts)
+                {
+                    getProductList.Add(mapper.ProductToGetProductDto(product));
+                }
+
+                return ResponseFactory.Success(getProductList, "Successful extraction of products from whishList");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while adding product to whishList");
+                return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
+            }
+        }
+
     }
 }
