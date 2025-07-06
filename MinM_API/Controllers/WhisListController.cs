@@ -11,5 +11,14 @@ namespace MinM_API.Controllers
     [Route("api/[controller]")]
     public class WhisListController(IWhishListService whishListService) : Controller
     {
+        [HttpPost]
+        [Route("AddProductToWhishList")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<int>>> AddProductToWishList(string productId)
+        {
+            var response = await whishListService.AddProductToWishList(User, productId);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
