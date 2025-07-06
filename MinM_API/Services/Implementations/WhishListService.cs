@@ -70,5 +70,41 @@ namespace MinM_API.Services.Implementations
             }
         }
 
+        public async Task<ServiceResponse<GetProductDto>> GetProductFromWishList(ClaimsPrincipal user, string whishListItemId)
+        {
+            try
+            {
+                var userId = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+                var wishlistItem = await context.WishlistItems
+                    .Include(wi => wi.Product)
+                    .ThenInclude(p => p.Discount)
+                    .Include(wi => wi.Product)
+                    .ThenInclude(p => p.Season)
+                    .Include(wi => wi.Product)
+                    .ThenInclude(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
+                    .Include(wi => wi.Product)
+                    .ThenInclude(p => p.Colors)
+                    .FirstOrDefaultAsync(wi => wi.ProductId == whishListItemId
+                    && wi.UserId == userId);
+
+                var product = wishlistItem?.Product;
+
+                if (product == null)
+                {
+                    logger.LogInformation("Fail: Fetching error. There's no product with such id: {whishListItemId}", whishListItemId);
+                    return ResponseFactory.Error(new GetProductDto(), "There is no such product with such id");
+                }
+
+                var getProduct = mapper.ProductToGetProductDto(product);
+
+                return ResponseFactory.Success(getProduct, "Successful extraction of product by id");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while retrieving product from database with such id. Id: {whishListItemId}", whishListItemId);
+                return ResponseFactory.Error(new GetProductDto(), "Internal error");
+            }
+        }
     }
 }
