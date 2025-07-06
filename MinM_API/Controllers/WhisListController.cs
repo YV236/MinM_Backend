@@ -20,5 +20,15 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpGet]
+        [Route("GetAllProductsFromWhishList")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<List<GetProductDto>>>> GetAllProductsFromWhishList()
+        {
+            var response = await whishListService.GetAllProductsFromWhishList(User);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
