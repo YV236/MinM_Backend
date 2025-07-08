@@ -40,5 +40,15 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpPut]
+        [Route("UpdateWhishList")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<int>>> ActualizeUserWishList(List<string> productIds)
+        {
+            var response = await whishListService.ActualizeUserWishList(User, productIds);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
