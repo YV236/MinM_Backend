@@ -49,10 +49,10 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new List<GetProductDto>(), "There is no such user with such id");
                 }
 
-                var userProducts = context.WishlistItems
+                var userProducts = await context.WishlistItems
                     .Where(wi => wi.UserId == userId)
                     .Select(wi => wi.Product)
-                    .ToList();
+                    .ToListAsync();
 
                 var getProductList = new List<GetProductDto>();
 
@@ -104,6 +104,39 @@ namespace MinM_API.Services.Implementations
             {
                 logger.LogError(ex, "Fail: Error while retrieving product from database with such id. Id: {whishListItemId}", whishListItemId);
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<int>> ActualizeUserWishList(ClaimsPrincipal user, List<string> productIds)
+        {
+            try
+            {
+                var userId = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+                var currentProductIds = await context.WishlistItems
+                    .Where(wi => wi.UserId == userId)
+                    .Select(wi => wi.ProductId)
+                    .ToListAsync();
+
+                var productIdsToAdd = productIds.Except(currentProductIds).ToList();
+
+                var newWishlistItems = productIdsToAdd.Select(productId => new WishlistItem
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserId = userId,
+                    ProductId = productId,
+                    AddedAt = DateTime.UtcNow
+                });
+
+                context.WishlistItems.AddRange(newWishlistItems);
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success(1, "Successful whishList update");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while updating whishList");
+                return ResponseFactory.Error(0, "Internal error");
             }
         }
     }
