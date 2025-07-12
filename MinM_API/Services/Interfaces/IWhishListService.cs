@@ -10,5 +10,6 @@ namespace MinM_API.Services.Interfaces
         Task<ServiceResponse<List<GetProductDto>>> GetAllProductsFromWhishList(ClaimsPrincipal user);
         Task<ServiceResponse<GetProductDto>> GetProductFromWishList(ClaimsPrincipal user, string whishListItemId);
         Task<ServiceResponse<int>> ActualizeUserWishList(ClaimsPrincipal user, List<string> productIds);
+        Task<ServiceResponse<int>> DeleteProductFromWhishList(ClaimsPrincipal user, string whishListItemId);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using MinM_API.Data;
 using MinM_API.Dtos;
@@ -76,7 +77,7 @@ namespace MinM_API.Services.Implementations
             {
                 var userId = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
-                var wishlistItem = await context.WishlistItems
+                var wishListItem = await context.WishlistItems
                     .Include(wi => wi.Product)
                     .ThenInclude(p => p.Discount)
                     .Include(wi => wi.Product)
@@ -88,7 +89,7 @@ namespace MinM_API.Services.Implementations
                     .FirstOrDefaultAsync(wi => wi.ProductId == whishListItemId
                     && wi.UserId == userId);
 
-                var product = wishlistItem?.Product;
+                var product = wishListItem?.Product;
 
                 if (product == null)
                 {
@@ -136,6 +137,42 @@ namespace MinM_API.Services.Implementations
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error while updating whishList");
+                return ResponseFactory.Error(0, "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<int>> DeleteProductFromWhishList(ClaimsPrincipal user, string whishListItemId)
+        {
+            try
+            {
+                var userId = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+                var wishListItem = await context.WishlistItems
+                    .Include(wi => wi.Product)
+                    .ThenInclude(p => p.Discount)
+                    .Include(wi => wi.Product)
+                    .ThenInclude(p => p.Season)
+                    .Include(wi => wi.Product)
+                    .ThenInclude(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
+                    .Include(wi => wi.Product)
+                    .ThenInclude(p => p.Colors)
+                    .FirstOrDefaultAsync(wi => wi.ProductId == whishListItemId
+                    && wi.UserId == userId);
+
+                if(whishListItemId is null)
+                {
+                    logger.LogError("Fail: Fetching error. There's no item with such id {itemId}", whishListItemId);
+                    return ResponseFactory.Error(0, "Internal error");
+                }
+
+                context.WishlistItems.Remove(wishListItem);
+                context.SaveChanges();
+
+                return ResponseFactory.Success(1, "Successful removal of the product from whishList");
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex, "Error while deleting product from whishList");
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
