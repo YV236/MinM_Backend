@@ -38,7 +38,7 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task<ServiceResponse<List<GetProductDto>>> GetAllProductsFromWhishList(ClaimsPrincipal user)
+        public async Task<ServiceResponse<List<GetProductDto>>> GetAllProductsFromWishList(ClaimsPrincipal user)
         {
             try
             {
@@ -141,7 +141,7 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task<ServiceResponse<int>> DeleteProductFromWhishList(ClaimsPrincipal user, string whishListItemId)
+        public async Task<ServiceResponse<int>> DeleteProductFromWishList(ClaimsPrincipal user, string whishListItemId)
         {
             try
             {

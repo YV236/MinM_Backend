@@ -9,44 +9,54 @@ namespace MinM_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WhisListController(IWhishListService whishListService) : Controller
+    public class WhisListController(IWhishListService wishListService) : Controller
     {
         [HttpPost]
-        [Route("AddProductToWhishList")]
+        [Route("AddProductToWishList")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> AddProductToWishList(string productId)
         {
-            var response = await whishListService.AddProductToWishList(User, productId);
+            var response = await wishListService.AddProductToWishList(User, productId);
 
             return StatusCode((int)response.StatusCode, response);
         }
 
         [HttpGet]
-        [Route("GetAllProductsFromWhishList")]
+        [Route("GetAllProductsFromWishList")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<List<GetProductDto>>>> GetAllProductsFromWhishList()
         {
-            var response = await whishListService.GetAllProductsFromWhishList(User);
+            var response = await wishListService.GetAllProductsFromWishList(User);
 
             return StatusCode((int)response.StatusCode, response);
         }
 
         [HttpGet]
-        [Route("GetProductFromWhishList")]
+        [Route("GetProductFromWishList")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<GetProductDto>>> GetProductFromWishList(string productId)
         {
-            var response = await whishListService.GetProductFromWishList(User, productId);
+            var response = await wishListService.GetProductFromWishList(User, productId);
 
             return StatusCode((int)response.StatusCode, response);
         }
 
         [HttpPut]
-        [Route("UpdateWhishList")]
+        [Route("UpdateWishList")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> ActualizeUserWishList(List<string> productIds)
         {
-            var response = await whishListService.ActualizeUserWishList(User, productIds);
+            var response = await wishListService.ActualizeUserWishList(User, productIds);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpDelete]
+        [Route("RemoveWishList")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<int>>> DeleteProductFromWishList(string whishListItemId)
+        {
+            var response = await wishListService.DeleteProductFromWishList(User, whishListItemId);
 
             return StatusCode((int)response.StatusCode, response);
         }
