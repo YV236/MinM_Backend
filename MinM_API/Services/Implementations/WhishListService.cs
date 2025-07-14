@@ -159,7 +159,7 @@ namespace MinM_API.Services.Implementations
                     .FirstOrDefaultAsync(wi => wi.ProductId == whishListItemId
                     && wi.UserId == userId);
 
-                if(whishListItemId is null)
+                if(wishListItem is null)
                 {
                     logger.LogError("Fail: Fetching error. There's no item with such id {itemId}", whishListItemId);
                     return ResponseFactory.Error(0, "Internal error");
