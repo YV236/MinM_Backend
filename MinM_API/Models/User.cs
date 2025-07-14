@@ -11,7 +11,7 @@ namespace MinM_API.Models
         public virtual Address? Address { get; set; }
         public virtual List<WishlistItem>? WishList { get; set; }
         public DateTime DateOfCreation { get; set; }
-        public virtual List<Product>? Cart { get; set; }
+        public virtual List<CartItem>? Cart { get; set; }
         public virtual List<Order>? History { get; set; }
         public virtual List<RefreshToken>? RefreshTokens { get; set; }
     }
