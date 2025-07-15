@@ -35,6 +35,8 @@ namespace MinM_API.Data
 
         public DbSet<Color> Colors { get; set; }
 
+        public DbSet<CartItem> CartItems { get; set; }
+
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -53,14 +55,33 @@ namespace MinM_API.Data
                 .HasForeignKey<Address>(a => a.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.Entity<User>()
-                .HasMany(u => u.Cart)
-                .WithMany(p => p.UsersWithThisProductInCart)
-                .UsingEntity<Dictionary<string, object>>(
-                "UserProducts",
-                j => j.HasOne<Product>().WithMany().HasForeignKey("ProductId"),
-                j => j.HasOne<User>().WithMany().HasForeignKey("UserId")
-                );
+            builder.Entity<CartItem>()
+               .HasOne(c => c.User)
+               .WithMany(u => u.Cart)
+               .HasForeignKey(w => w.UserId)
+               .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<CartItem>()
+                .HasOne(c => c.Product)
+                .WithMany()
+                .HasForeignKey(w => w.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Discount>()
+                .Property(d => d.DiscountPercentage)
+                .HasPrecision(5, 2);
+
+            builder.Entity<ProductVariant>()
+                .Property(pv => pv.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<ProductVariant>()
+                .Property(pv => pv.DiscountPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<OrderItem>()
+                .Property(oi => oi.Price)
+                .HasPrecision(18, 2);
 
             builder.Entity<WishlistItem>()
                 .HasOne(w => w.User)
