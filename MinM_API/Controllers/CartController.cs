@@ -10,7 +10,8 @@ namespace MinM_API.Controllers
     [Route("api/[controller]")]
     public class CartController(ICartService cartService) : ControllerBase
     {
-        [HttpGet]
+        [HttpPut]
+        [Route("Update")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> ActualizeUserCart(List<string> productIds)
         {
@@ -20,6 +21,7 @@ namespace MinM_API.Controllers
         }
 
         [HttpGet]
+        [Route("GetAll")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> GetAllProductsFromCart()
         {
@@ -29,6 +31,7 @@ namespace MinM_API.Controllers
         }
 
         [HttpGet]
+        [Route("Get")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> GetProductFromCart(string productIds)
         {
@@ -37,7 +40,8 @@ namespace MinM_API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
-        [HttpGet]
+        [HttpDelete]
+        [Route("Delete")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> DeleteProductFromCart(string productIds)
         {
@@ -46,7 +50,8 @@ namespace MinM_API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
-        [HttpGet]
+        [HttpPost]
+        [Route("Create")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> AddProductToCart(string productIds)
         {
