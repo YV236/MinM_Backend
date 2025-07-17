@@ -67,6 +67,12 @@ namespace MinM_API.Data
                 .HasForeignKey(w => w.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            builder.Entity<CartItem>()
+                .HasOne(c => c.ProductVariant)
+                .WithMany()
+                .HasForeignKey(c => c.ProductVariantId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             builder.Entity<Discount>()
                 .Property(d => d.DiscountPercentage)
                 .HasPrecision(5, 2);
