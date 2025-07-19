@@ -2,7 +2,7 @@
 {
     public class CartItem
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Id { get; set; }
 
         public string UserId { get; set; }
         public virtual User User { get; set; } = null!;
@@ -16,5 +16,4 @@
         public int Quantity { get; set; } = 1;
         public DateTime AddedAt { get; set; } = DateTime.UtcNow;
     }
-
 }

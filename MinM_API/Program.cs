@@ -99,6 +99,7 @@ builder.Services.AddSingleton<SeasonMapper>();
 builder.Services.AddSingleton<UserMapper>();
 builder.Services.AddSingleton<CategoryMapper>();
 builder.Services.AddSingleton<DiscountMapper>();
+builder.Services.AddSingleton<CartMapper>();
 
 builder.Services.AddCors(options =>
 {
