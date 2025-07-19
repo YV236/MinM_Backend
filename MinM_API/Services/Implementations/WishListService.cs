@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace MinM_API.Services.Implementations
 {
-    public class WhishListService(DataContext context, ILogger<WhishListService> logger, ProductMapper mapper) : IWhishListService
+    public class WishListService(DataContext context, ILogger<WishListService> logger, ProductMapper mapper) : IWishListService
     {
         public async Task<ServiceResponse<int>> AddProductToWishList(ClaimsPrincipal user, string productId)
         {
@@ -86,7 +86,7 @@ namespace MinM_API.Services.Implementations
                     .ThenInclude(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
                     .Include(wi => wi.Product)
                     .ThenInclude(p => p.Colors)
-                    .FirstOrDefaultAsync(wi => wi.ProductId == whishListItemId
+                    .FirstOrDefaultAsync(wi => wi.Id == whishListItemId
                     && wi.UserId == userId);
 
                 var product = wishListItem?.Product;

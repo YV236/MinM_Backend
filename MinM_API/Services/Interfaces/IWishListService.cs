@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace MinM_API.Services.Interfaces
 {
-    public interface IWhishListService
+    public interface IWishListService
     {
         Task<ServiceResponse<int>> AddProductToWishList(ClaimsPrincipal user, string productId);
         Task<ServiceResponse<List<GetProductDto>>> GetAllProductsFromWishList(ClaimsPrincipal user);

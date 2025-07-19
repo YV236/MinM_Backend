@@ -9,7 +9,7 @@ namespace MinM_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WhisListController(IWhishListService wishListService) : Controller
+    public class WhisListController(IWishListService wishListService) : Controller
     {
         [HttpPost]
         [Route("AddProductToWishList")]
