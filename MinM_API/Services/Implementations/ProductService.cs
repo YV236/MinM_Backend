@@ -174,6 +174,7 @@ namespace MinM_API.Services.Implementations
                 var productsList = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
+                    .Include(p => p.ProductVariants)
                     .Include(p => p.ProductImages)
                     .Include(p => p.Colors)
                     .ToListAsync();
@@ -182,6 +183,17 @@ namespace MinM_API.Services.Implementations
                 {
                     logger.LogInformation("No products found in database");
                     return ResponseFactory.Error(new List<GetProductDto>(), "There are no products", HttpStatusCode.NotFound);
+                }
+
+                foreach (var product in productsList)
+                {
+                    product.ProductVariants = product.ProductVariants
+                        .OrderBy(pv => int.Parse(pv.Name))
+                        .ToList();
+
+                    product.ProductImages = product.ProductImages
+                        .OrderBy(pi => pi.SequenceNumber)
+                        .ToList();
                 }
 
                 var getProductsList = new List<GetProductDto>();
@@ -209,7 +221,8 @@ namespace MinM_API.Services.Implementations
                 var product = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
+                    .Include(p => p.ProductVariants)
+                    .Include(p => p.ProductImages)
                     .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -218,6 +231,14 @@ namespace MinM_API.Services.Implementations
                     logger.LogInformation("No products found in database");
                     return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
                 }
+                
+                product.ProductVariants = product.ProductVariants
+                    .OrderBy(pv => int.Parse(pv.Name))
+                    .ToList();
+                
+                product.ProductImages = product.ProductImages
+                    .OrderBy(pi => pi.SequenceNumber)
+                    .ToList();
 
                 var getProduct = mapper.ProductToGetProductDto(product);
 
@@ -237,7 +258,8 @@ namespace MinM_API.Services.Implementations
                 var product = await context.Products
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
-                    .Include(p => p.ProductImages.OrderBy(pi => pi.SequenceNumber))
+                    .Include(p => p.ProductVariants)
+                    .Include(p => p.ProductImages)
                     .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.Slug == slug);
 
@@ -246,6 +268,14 @@ namespace MinM_API.Services.Implementations
                     logger.LogInformation("No products found in database");
                     return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
                 }
+
+                product.ProductVariants = product.ProductVariants
+                   .OrderBy(pv => int.Parse(pv.Name))
+                   .ToList();
+
+                product.ProductImages = product.ProductImages
+                    .OrderBy(pi => pi.SequenceNumber)
+                    .ToList();
 
                 var getProduct = mapper.ProductToGetProductDto(product);
 
