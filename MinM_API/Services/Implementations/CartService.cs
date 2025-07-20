@@ -169,33 +169,5 @@ namespace MinM_API.Services.Implementations
                 return ResponseFactory.Error(new List<GetCartItemDto>(), "Internal error");
             }
         }
-
-
-        public async Task<ServiceResponse<GetCartItemDto>> GetProductFromCart(ClaimsPrincipal user, string cartItemId)
-        {
-            try
-            {
-                var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null)
-                {
-                    logger.LogInformation("Fail: Fetching error. There's no user with such id: {userId}", userId);
-                    return ResponseFactory.Error(new GetCartItemDto(), "There is no such user with such id");
-                }
-
-                var cartItem = await context.CartItems
-                    .Include(c => c.Product)
-                    .Include(c => c.ProductVariant)
-                    .FirstOrDefaultAsync(c => c.Id == cartItemId);
-
-                var getCartItem = cartMapper.CarItemToGetCartItemDto(cartItem);
-
-                return ResponseFactory.Success(getCartItem, "Successfully fetched products from cart");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Fail: Error while fetching cart products");
-                return ResponseFactory.Error(new GetCartItemDto(), "Internal error");
-            }
-        }
     }
 }

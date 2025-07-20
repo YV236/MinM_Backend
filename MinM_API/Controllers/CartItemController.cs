@@ -50,15 +50,5 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
-
-        [HttpGet]
-        [Route("GetProductFromCart")]
-        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
-        public async Task<ActionResult<ServiceResponse<GetCartItemDto>>> GetProductFromCart(string itemId)
-        {
-            var response = await cartService.GetProductFromCart(User, itemId);
-
-            return StatusCode((int)response.StatusCode, response);
-        }
     }
 }
