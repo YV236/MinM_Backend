@@ -48,6 +48,7 @@ namespace MinM_API.Services.Implementations
                     {
                         var newCartItem = new CartItem
                         {
+                            Id = Guid.NewGuid().ToString(),
                             UserId = userId,
                             ProductId = dto.ProductId,
                             ProductVariantId = dto.ProductVariantId,
@@ -114,7 +115,7 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(0, "There is no such user with such id");
                 }
 
-                var cartItem = await context.CartItems.FindAsync(userId);
+                var cartItem = await context.CartItems.FindAsync(cartItemId);
 
                 if (cartItem == null)
                 {
@@ -167,6 +168,36 @@ namespace MinM_API.Services.Implementations
             {
                 logger.LogError(ex, "Fail: Error while fetching cart products");
                 return ResponseFactory.Error(new List<GetCartItemDto>(), "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<int>> UpdateCartItem(ClaimsPrincipal user, UpdateCartItemDto cartItemToUpdate)
+        {
+            try
+            {
+                var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    logger.LogInformation("Fail: Fetching error. There's no user with such id: {userId}", userId);
+                    return ResponseFactory.Error(0, "There is no such user with such id");
+                }
+
+                var cartItem = await context.CartItems
+                    .Include(c => c.Product)
+                    .Include(c => c.ProductVariant)
+                    .FirstOrDefaultAsync(c => c.Id == cartItemToUpdate.Id);
+
+                cartItem.ProductVariantId = cartItemToUpdate.ProductVariantId;
+                cartItem.Quantity = cartItemToUpdate.Quantity;
+
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success(1, "Successfully updated cart item");
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while updating cart item");
+                return ResponseFactory.Error(0, "Internal error");
             }
         }
     }

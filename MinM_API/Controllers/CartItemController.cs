@@ -12,7 +12,7 @@ namespace MinM_API.Controllers
     public class CartItemController(ICartService cartService) : ControllerBase
     {
         [HttpPut]
-        [Route("UpdateCart")]
+        [Route("ActualizeCart")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<GetCartItemDto>>> ActualizeUserCart(List<AddCartItemDto> items)
         {
@@ -47,6 +47,16 @@ namespace MinM_API.Controllers
         public async Task<ActionResult<ServiceResponse<GetCartItemDto>>> GetAllProductsFromCart()
         {
             var response = await cartService.GetAllProductsFromCart(User);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpPut]
+        [Route("UpdateCartItem")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<GetCartItemDto>>> ActualizeUserCart(UpdateCartItemDto itemToUpdate)
+        {
+            var response = await cartService.UpdateCartItem(User, itemToUpdate);
 
             return StatusCode((int)response.StatusCode, response);
         }
