@@ -93,6 +93,7 @@ builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IWishListService, WishListService>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddScoped<JwtTokenService>();
 
 builder.Services.AddSingleton<ProductMapper>();
