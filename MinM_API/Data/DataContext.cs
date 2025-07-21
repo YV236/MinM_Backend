@@ -39,6 +39,8 @@ namespace MinM_API.Data
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+        public DbSet<BannerImage> BannerImages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -205,6 +207,21 @@ namespace MinM_API.Data
                 entity.Property(rt => rt.Token)
                       .HasMaxLength(500)
                       .IsRequired();
+            });
+
+            builder.Entity<BannerImage>(entity =>
+            {
+                entity.HasKey(b => b.Id);
+
+                entity.Property(b => b.Id)
+                    .IsRequired();
+
+                entity.Property(b => b.SequenceNumber)
+                    .IsRequired();
+
+                entity.Property(b => b.URL)
+                    .IsRequired()
+                    .HasMaxLength(2048);
             });
         }
     }
