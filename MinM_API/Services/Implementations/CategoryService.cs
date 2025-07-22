@@ -6,7 +6,7 @@ using MinM_API.Dtos.Category;
 using MinM_API.Dtos.Product;
 using MinM_API.Extension;
 using MinM_API.Mappers;
-using MinM_API.Migrations;
+
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Net;

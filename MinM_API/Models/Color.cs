@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MinM_API.Migrations;
 using System.ComponentModel.DataAnnotations;
 
 namespace MinM_API.Models
