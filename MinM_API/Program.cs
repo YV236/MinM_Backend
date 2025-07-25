@@ -116,7 +116,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Применение миграций с повторными попытками
+// Migrations with repeat attempts
 app.MapGet("/health", () => Results.Ok("OK"));
 
 using (var scope = app.Services.CreateScope())
@@ -131,7 +131,7 @@ using (var scope = app.Services.CreateScope())
         {
             dbContext.Database.Migrate();
             Console.WriteLine("Миграции успешно применены.");
-            break; // Успех — выходим из цикла
+            break; // Success - out of the loop
         }
         catch (Exception ex)
         {
