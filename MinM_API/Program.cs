@@ -116,12 +116,45 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Migrations with repeat attempts
+app.MapGet("/health", () => Results.Ok("OK"));
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+    int retryCount = 5;
+    TimeSpan retryDelay = TimeSpan.FromSeconds(10);
+
+    for (int i = 0; i < retryCount; i++)
+    {
+        try
+        {
+            dbContext.Database.Migrate();
+            Console.WriteLine("Миграции успешно применены.");
+            break; // Success - out of the loop
+        }
+        catch (Exception ex)
+        {
+            if (i < retryCount - 1)
+            {
+                Console.WriteLine($"Database unavailable, retrying in {retryDelay.TotalSeconds} seconds... Error: {ex.Message}");
+                Thread.Sleep(retryDelay);
+            }
+            else
+            {
+                Console.WriteLine($"Failed to connect to database after {retryCount} attempts. Error: {ex.Message}");
+                throw; // Rethrow after all retries are exhausted
+            }
+        }
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.ApplyMigration();
+    // app.ApplyMigration();
 }
 
 using (var scope = app.Services.CreateScope())

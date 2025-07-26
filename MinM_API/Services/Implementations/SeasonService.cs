@@ -22,8 +22,8 @@ namespace MinM_API.Services.Implementations
                     Id = Guid.NewGuid().ToString(),
                     Name = addSeasonDto.Name,
                     Slug = SlugExtension.GenerateSlug(addSeasonDto.Name),
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow,
                 };
 
                 var productList = await context.Products

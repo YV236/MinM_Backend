@@ -23,7 +23,7 @@ namespace MinM_API.Services.Implementations
                     Id = Guid.NewGuid().ToString(),
                     UserId = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value,
                     ProductId = productId,
-                    AddedAt = DateTime.Now,
+                    AddedAt = DateTime.UtcNow,
                 };
 
                 context.WishlistItems.Add(whishListItem);
