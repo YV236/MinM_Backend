@@ -10,7 +10,7 @@ namespace MinM_API.Services.BackgroundServices
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 var nextRun = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
 
                 if (now > nextRun)

@@ -38,7 +38,7 @@ namespace MinM_API.Services.Implementations
                     Description = addProductDto.Description,
                     CategoryId = addProductDto.CategoryId,
                     SKU = addProductDto.SKU,
-                    DateOfCreation = DateTime.Now,
+                    DateOfCreation = DateTime.UtcNow,
                     IsNew = true,
                     ProductImages = []
                 };

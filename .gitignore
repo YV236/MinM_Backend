@@ -6,6 +6,11 @@
 # dotenv files
 .env
 
+# Custom files
+appsettings.json
+appsettings.Development.json
+MinM_API/Extension/AdminExtension.cs
+
 # User-specific files
 *.rsuser
 *.suo

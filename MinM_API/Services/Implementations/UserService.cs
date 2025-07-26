@@ -75,7 +75,7 @@ namespace MinM_API.Services.Implementations
                 {
                     Email = userRegisterDto.Email,
                     UserName = userRegisterDto.Email,
-                    DateOfCreation = DateTime.Now,
+                    DateOfCreation = DateTime.UtcNow,
                 };
 
                 var result = await userManager.CreateAsync(user, userRegisterDto.Password);

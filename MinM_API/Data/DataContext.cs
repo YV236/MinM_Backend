@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MinM_API.Models;
 using System.Reflection.Emit;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MinM_API.Data
 {
@@ -223,6 +224,7 @@ namespace MinM_API.Data
                     .IsRequired()
                     .HasMaxLength(2048);
             });
+            
         }
     }
 }

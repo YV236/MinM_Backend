@@ -13,7 +13,7 @@ namespace MinM_API.Repositories.Implementations
         {
             var id = userToFind.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
-            return await context.Users.Include(u => u.Address).FirstOrDefaultAsync(u => u.Id.ToString() == id);
+            return await context.Users.Include(u => u.Address).FirstOrDefaultAsync(u => u.Id == id);
         }
     }
 }
