@@ -119,6 +119,7 @@ var app = builder.Build();
 // Migrations with repeat attempts
 app.MapGet("/health", () => Results.Ok("OK"));
 
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
