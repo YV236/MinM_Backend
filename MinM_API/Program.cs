@@ -103,11 +103,13 @@ builder.Services.AddSingleton<CategoryMapper>();
 builder.Services.AddSingleton<DiscountMapper>();
 builder.Services.AddSingleton<CartMapper>();
 
+var nextAuthUrl = Environment.GetEnvironmentVariable("NEXTAUTH_URL");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("NextJsCorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "nextAuthUrl")
+        policy.WithOrigins("http://localhost:3000", nextAuthUrl)
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials();
