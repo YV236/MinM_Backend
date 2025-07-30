@@ -29,7 +29,7 @@ namespace MinM_API.Controllers
         [HttpPut]
         [Route("Update")]
         [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
-        public async Task<ActionResult<ServiceResponse<int>>> UpdateProduct(UpdateProductDto productDto)
+        public async Task<ActionResult<ServiceResponse<int>>> UpdateProduct([FromForm] UpdateProductDto productDto)
         {
             var response = await productService.UpdateProduct(productDto);
 

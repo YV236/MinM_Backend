@@ -12,7 +12,7 @@ namespace MinM_API.Dtos.Product
         [FromForm] public string CategoryId { get; set; } = string.Empty;
         [FromForm(Name = "ProductColorsJson")] public string? ProductColorsJson { get; set; } = string.Empty;
         [FromForm] public string SKU { get; set; } = string.Empty;
-        [FromForm] public List<string> ExistingImageUrls { get; set; } = [];
-        [FromForm] public List<IFormFile> NewImages { get; set; } = [];
+        [FromForm] public List<IFormFile> Images { get; set; } = [];
+        [FromForm] public List<int> ImageSequenceNumbers { get; set; } = [];
     }
 }

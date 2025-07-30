@@ -127,7 +127,6 @@ namespace MinM_API.Services.Implementations
             try
             {
                 var product = await context.Products
-                    .Include(p => p.ProductImages)
                     .Include(p => p.ProductVariants)
                     .FirstOrDefaultAsync(p => p.Id == updateProductDto.Id);
 
@@ -139,7 +138,7 @@ namespace MinM_API.Services.Implementations
                 mapper.UpdateProductToProduct(updateProductDto, product);
                 product.Slug = SlugExtension.GenerateSlug(product.Name);
 
-                await UpdateProductImagesAsync(product, updateProductDto.ExistingImageUrls, updateProductDto.NewImages);
+                await UpdateProductImagesAsync(updateProductDto);
 
                 var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == product.DiscountId);
 
@@ -319,36 +318,51 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        private async Task UpdateProductImagesAsync(
-            Product product,
-            List<string> existingImageUrls,
-            List<IFormFile> newImages)
+        private async Task UpdateProductImagesAsync(UpdateProductDto updateProductDto)
         {
-            var imagesToDelete = product.ProductImages
-                .Where(img => !existingImageUrls.Contains(img.FilePath))
-                .ToList();
+            var images = updateProductDto.Images;
+            var sequenceNumbers = updateProductDto.ImageSequenceNumbers;
+            if (images.Count != sequenceNumbers.Count)
+                throw new ArgumentException("Images count і SequenceNumbers count must be equal.");
 
-            foreach (var img in imagesToDelete)
+            // 1. Завантажуємо та видаляємо повністю всі старі фото
+            var existingImages = await context.ProductImages
+                .Where(pi => pi.ProductId == updateProductDto.Id)
+                .ToListAsync();
+
+            foreach (var oldImage in existingImages)
             {
-                var publicId = photoService.GetPublicIdFromUrl(img.FilePath);
-                await photoService.DeleteImageAsync(publicId);
-                context.ProductImages.Remove(img);
+                var publicId = photoService.GetPublicIdFromUrl(oldImage.FilePath);
+                if (!string.IsNullOrEmpty(publicId))
+                    await photoService.DeleteImageAsync(publicId);
+                context.ProductImages.Remove(oldImage);
             }
+            // Вже повний "очищений" список — можна додавати заново в потрібному порядку
 
-            foreach (var file in newImages)
+            // 2. Додаємо фото згідно нового списку
+            for (int i = 0; i < images.Count; i++)
             {
-                var imageUrl = await photoService.UploadImageAsync(file);
-                if (imageUrl != null)
+                var image = images[i];
+                var sequenceNumber = sequenceNumbers[i];
+                string? filePath = null;
+                
+                filePath = await photoService.UploadImageAsync(image);
+
+                if (!string.IsNullOrEmpty(filePath))
                 {
-                    product.ProductImages.Add(new ProductImage
+                    context.ProductImages.Add(new ProductImage
                     {
                         Id = Guid.NewGuid().ToString(),
-                        ProductId = product.Id,
-                        FilePath = imageUrl
+                        ProductId = updateProductDto.Id,
+                        SequenceNumber = sequenceNumber,
+                        FilePath = filePath
                     });
                 }
             }
+
+            await context.SaveChangesAsync();
         }
+
 
         private void UpdateProductVariants(Product product, List<UpdateProductVariantDto>? variants, Discount? discount)
         {
