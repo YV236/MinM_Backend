@@ -320,26 +320,27 @@ namespace MinM_API.Services.Implementations
 
         private async Task UpdateProductImagesAsync(UpdateProductDto updateProductDto)
         {
-            var images = updateProductDto.Images;
-            var sequenceNumbers = updateProductDto.ImageSequenceNumbers;
-            if (images.Count != sequenceNumbers.Count)
-                throw new ArgumentException("Images count і SequenceNumbers count must be equal.");
-
-            // 1. Завантажуємо та видаляємо повністю всі старі фото
-            var existingImages = await context.ProductImages
-                .Where(pi => pi.ProductId == updateProductDto.Id)
-                .ToListAsync();
-
-            foreach (var oldImage in existingImages)
+            if (!updateProductDto.ExistingImages.IsNullOrEmpty())
             {
-                var publicId = photoService.GetPublicIdFromUrl(oldImage.FilePath);
-                if (!string.IsNullOrEmpty(publicId))
-                    await photoService.DeleteImageAsync(publicId);
-                context.ProductImages.Remove(oldImage);
+                ChangeImages(updateProductDto);
             }
-            // Вже повний "очищений" список — можна додавати заново в потрібному порядку
+            else
+            {
+                var imagesToDelete = await context.ProductImages
+                .Where(pi => pi.ProductId == updateProductDto.Id).ToListAsync();
 
-            // 2. Додаємо фото згідно нового списку
+                foreach (var imageToRemove in imagesToDelete)
+                {
+                    var publicId = photoService.GetPublicIdFromUrl(imageToRemove.FilePath);
+                    if (!string.IsNullOrEmpty(publicId))
+                        await photoService.DeleteImageAsync(publicId);
+                    context.ProductImages.Remove(imageToRemove);
+                }
+            }
+
+            var images = updateProductDto.NewImages;
+            var sequenceNumbers = updateProductDto.ImageSequenceNumbers;
+
             for (int i = 0; i < images.Count; i++)
             {
                 var image = images[i];
@@ -358,6 +359,40 @@ namespace MinM_API.Services.Implementations
                         FilePath = filePath
                     });
                 }
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        private async Task ChangeImages(UpdateProductDto updateProductDto)
+        {
+            var existingImages = JsonSerializer.Deserialize<List<PhotoDto>>(updateProductDto.ExistingImages, jsonOptions);
+
+            var existingURLs = existingImages.Where(v => !string.IsNullOrEmpty(v.FilePath)).Select(v => v.FilePath).ToList();
+
+            var imagesToRemove = await context.ProductImages.Where(pi => !existingURLs.Contains(pi.FilePath)).ToListAsync();
+
+            foreach(var imageToRemove in imagesToRemove)
+            {
+                var publicId = photoService.GetPublicIdFromUrl(imageToRemove.FilePath);
+                if (!string.IsNullOrEmpty(publicId))
+                    await photoService.DeleteImageAsync(publicId);
+                context.ProductImages.Remove(imageToRemove);
+            }
+
+            var imagesToDelete = await context.ProductImages
+                .Where(pi => pi.ProductId == updateProductDto.Id).ToListAsync();
+            context.ProductImages.RemoveRange(imagesToDelete);
+
+            foreach (var image in existingImages)
+            {
+                context.ProductImages.Add(new ProductImage
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ProductId = updateProductDto.Id,
+                    SequenceNumber = image.SequenceNumber,
+                    FilePath = image.FilePath
+                });
             }
 
             await context.SaveChangesAsync();

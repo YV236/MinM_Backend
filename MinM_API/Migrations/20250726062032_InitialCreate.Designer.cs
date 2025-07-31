@@ -274,7 +274,7 @@ namespace MinM_API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageURL")
+                    b.Property<string>("FilePath")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
