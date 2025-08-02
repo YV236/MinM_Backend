@@ -322,7 +322,7 @@ namespace MinM_API.Services.Implementations
         {
             if (!updateProductDto.ExistingImages.IsNullOrEmpty())
             {
-                ChangeImages(updateProductDto);
+                await ChangeImages(updateProductDto);
             }
             else
             {
@@ -370,7 +370,7 @@ namespace MinM_API.Services.Implementations
 
             var existingURLs = existingImages.Where(v => !string.IsNullOrEmpty(v.FilePath)).Select(v => v.FilePath).ToList();
 
-            var imagesToRemove = await context.ProductImages.Where(pi => !existingURLs.Contains(pi.FilePath)).ToListAsync();
+            var imagesToRemove = await context.ProductImages.Where(pi => !existingURLs.Contains(pi.FilePath) && pi.ProductId == updateProductDto.Id).ToListAsync();
 
             foreach(var imageToRemove in imagesToRemove)
             {
