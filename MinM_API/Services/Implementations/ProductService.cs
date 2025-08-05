@@ -8,6 +8,7 @@ using MinM_API.Extension;
 using MinM_API.Mappers;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
+using System.Globalization;
 using System.Net;
 using System.Text.Json;
 
@@ -187,7 +188,7 @@ namespace MinM_API.Services.Implementations
                 foreach (var product in productsList)
                 {
                     product.ProductVariants = product.ProductVariants
-                        .OrderBy(pv => int.Parse(pv.Name))
+                        .OrderBy(pv => decimal.Parse(pv.Name, CultureInfo.InvariantCulture))
                         .ToList();
 
                     product.ProductImages = product.ProductImages
@@ -230,11 +231,11 @@ namespace MinM_API.Services.Implementations
                     logger.LogInformation("No products found in database");
                     return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
                 }
-                
+
                 product.ProductVariants = product.ProductVariants
-                    .OrderBy(pv => int.Parse(pv.Name))
+                    .OrderBy(pv => decimal.Parse(pv.Name, CultureInfo.InvariantCulture))
                     .ToList();
-                
+
                 product.ProductImages = product.ProductImages
                     .OrderBy(pi => pi.SequenceNumber)
                     .ToList();
@@ -269,8 +270,8 @@ namespace MinM_API.Services.Implementations
                 }
 
                 product.ProductVariants = product.ProductVariants
-                   .OrderBy(pv => int.Parse(pv.Name))
-                   .ToList();
+                    .OrderBy(pv => decimal.Parse(pv.Name, CultureInfo.InvariantCulture))
+                    .ToList();
 
                 product.ProductImages = product.ProductImages
                     .OrderBy(pi => pi.SequenceNumber)
