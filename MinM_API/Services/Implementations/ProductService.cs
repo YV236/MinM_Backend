@@ -399,7 +399,6 @@ namespace MinM_API.Services.Implementations
             await context.SaveChangesAsync();
         }
 
-
         private void UpdateProductVariants(Product product, List<UpdateProductVariantDto>? variants, Discount? discount)
         {
             var existingVariants = product.ProductVariants.ToList();

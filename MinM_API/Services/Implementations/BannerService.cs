@@ -1,16 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MinM_API.Data;
 using MinM_API.Dtos;
 using MinM_API.Dtos.Banner;
 using MinM_API.Dtos.Cart;
+using MinM_API.Dtos.Product;
 using MinM_API.Extension;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
+using System.Text.Json;
 
 namespace MinM_API.Services.Implementations
 {
     public class BannerService(DataContext context, ILogger<BannerService> logger, IPhotoService photoService) : IBannerService
     {
+        private static readonly JsonSerializerOptions jsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         public async Task<ServiceResponse<List<GetBannerImagesDto>>> GetBannerImages()
         {
             try
@@ -23,7 +31,11 @@ namespace MinM_API.Services.Implementations
                 {
                     getBannerImages.Add(new GetBannerImagesDto
                     {
-                        URL = bannerImage.URL
+                        SequenceNumber = bannerImage.SequenceNumber,
+                        ImageURL = bannerImage.ImageURL,
+                        PageURL = bannerImage.PageURL,
+                        ButtonText = bannerImage.ButtonText,
+                        Text = bannerImage.Text,
                     });
                 }
 
@@ -40,76 +52,96 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
-                var images = bannerImagesDto.Images;
-                var sequenceNumbers = bannerImagesDto.SequenceNumbers;
-
-                // 1. Перевірка — списки мають бути однакової довжини
-                if (images.Count != sequenceNumbers.Count)
-                    return ResponseFactory.Error(0, "Images count і SequenceNumbers count must be equal!");
-
-                // 2. Сформувати нову послідовність (SequenceNumber) — якісь фото з якими номерами потрібні
-                var newSeqs = sequenceNumbers.ToHashSet();
-
-                // 3. Забираємо старі банери
-                var existingBanners = await context.BannerImages.ToListAsync();
-
-                // 4. Видалити непотрібні банери
-                var bannersToDelete = existingBanners.Where(b => !newSeqs.Contains(b.SequenceNumber)).ToList();
-                foreach (var oldBanner in bannersToDelete)
+                if (!bannerImagesDto.ExistingImages.IsNullOrEmpty())
                 {
-                    var publicId = photoService.GetPublicIdFromUrl(oldBanner.URL);
-                    await photoService.DeleteImageAsync(publicId);
+                    await ChangeImages(bannerImagesDto);
+                }
+                else
+                {
+                    var imagesToDelete = await context.BannerImages.ToListAsync();
 
-                    context.BannerImages.Remove(oldBanner);
+                    foreach (var imageToRemove in imagesToDelete)
+                    {
+                        var publicId = photoService.GetPublicIdFromUrl(imageToRemove.ImageURL);
+                        if (!string.IsNullOrEmpty(publicId))
+                            await photoService.DeleteImageAsync(publicId);
+                        context.BannerImages.Remove(imageToRemove);
+                    }
                 }
 
-                // 5. Додаємо або оновлюємо банери — по індексу з масиву
+                var images = bannerImagesDto.NewImages;
+                var sequenceNumbers = bannerImagesDto.ImageSequenceNumbers;
+                var pageURLs = bannerImagesDto.PageURLs;
+                var buttonTexts = bannerImagesDto.ButtonTexts;
+                var texts = bannerImagesDto.Texts;
+
                 for (int i = 0; i < images.Count; i++)
                 {
-                    var sequenceNumber = sequenceNumbers[i];
                     var image = images[i];
-                    var bannerInDb = existingBanners.FirstOrDefault(b => b.SequenceNumber == sequenceNumber);
+                    var sequenceNumber = sequenceNumbers[i];
+                    var PageURL = pageURLs[i];
+                    var buttonText = buttonTexts[i];
+                    var text = texts[i];
+                    string? imageURL = null;
 
-                    if (bannerInDb != null)
+                    imageURL = await photoService.UploadImageAsync(image);
+
+                    if (!string.IsNullOrEmpty(imageURL))
                     {
-                        var newUrl = await photoService.UploadImageAsync(image);
-
-                        if (!string.IsNullOrEmpty(newUrl) && bannerInDb.URL != newUrl)
+                        context.BannerImages.Add(new BannerImage
                         {
-                            var publicId = photoService.GetPublicIdFromUrl(bannerInDb.URL);
-                            await photoService.DeleteImageAsync(publicId);
-
-                            bannerInDb.URL = newUrl;
-                        }
-                    }
-                    else
-                    {
-                        var url = await photoService.UploadImageAsync(image);
-
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            var newBanner = new BannerImage
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                SequenceNumber = sequenceNumber,
-                                URL = url
-                            };
-                            await context.BannerImages.AddAsync(newBanner);
-                        }
+                            Id = Guid.NewGuid().ToString(),
+                            SequenceNumber = sequenceNumber,
+                            ImageURL = imageURL,
+                            PageURL = PageURL,
+                            ButtonText = buttonText,
+                            Text = text,
+                        });
                     }
                 }
 
-                // 6. Зберегти зміни
-                await context.SaveChangesAsync();
-
-                var count = await context.BannerImages.CountAsync();
-                return ResponseFactory.Success(count, "Banners updated");
+                var result = await context.SaveChangesAsync(); 
+                return ResponseFactory.Success(result, "Banners updated");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error while updating banner");
                 return ResponseFactory.Error(0, "Internal error");
             }
+        }
+
+        private async Task ChangeImages(AddBannerImagesDto bannerImagesDto)
+        {
+            var existingImages = JsonSerializer.Deserialize<List<BannerPhoto>>(bannerImagesDto.ExistingImages, jsonOptions);
+
+            var existingURLs = existingImages.Where(v => !string.IsNullOrEmpty(v.ImageURL)).Select(v => v.ImageURL).ToList();
+
+            var imagesToRemove = await context.BannerImages.Where(bi => !existingURLs.Contains(bi.ImageURL)).ToListAsync();
+
+            foreach (var imageToRemove in imagesToRemove)
+            {
+                var publicId = photoService.GetPublicIdFromUrl(imageToRemove.ImageURL);
+                if (!string.IsNullOrEmpty(publicId))
+                    await photoService.DeleteImageAsync(publicId);
+                context.BannerImages.Remove(imageToRemove);
+            }
+
+            context.ProductImages.RemoveRange();
+
+            foreach (var image in existingImages)
+            {
+                context.BannerImages.Add(new BannerImage
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    SequenceNumber = image.SequenceNumber,
+                    ImageURL = image.ImageURL,
+                    PageURL = image.PageURL,
+                    ButtonText = image.ButtonText,
+                    Text = image.Text
+                });
+            }
+
+            await context.SaveChangesAsync();
         }
     }
 }

@@ -1,9 +1,8 @@
 ﻿namespace MinM_API.Dtos.Banner
 {
-    public record GetBannerImagesDto
+    public class BannerPhoto
     {
         public int SequenceNumber { get; set; }
-
         public string ImageURL { get; set; } = string.Empty;
         public string PageURL { get; set; } = string.Empty;
 

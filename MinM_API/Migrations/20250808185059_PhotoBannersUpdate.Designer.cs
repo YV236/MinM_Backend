@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MinM_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250726062032_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250808185059_PhotoBannersUpdate")]
+    partial class PhotoBannersUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -219,13 +219,28 @@ namespace MinM_API.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<int>("SequenceNumber")
-                        .HasColumnType("integer");
+                    b.Property<string>("ButtonText")
+                        .IsRequired()
+                        .HasMaxLength(248)
+                        .HasColumnType("character varying(248)");
 
                     b.Property<string>("ImageURL")
                         .IsRequired()
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("PageURL")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<int>("SequenceNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(248)
+                        .HasColumnType("character varying(248)");
 
                     b.HasKey("Id");
 
@@ -274,7 +289,7 @@ namespace MinM_API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<string>("FilePath")
+                    b.Property<string>("ImageURL")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")

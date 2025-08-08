@@ -216,13 +216,28 @@ namespace MinM_API.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<int>("SequenceNumber")
-                        .HasColumnType("integer");
+                    b.Property<string>("ButtonText")
+                        .IsRequired()
+                        .HasMaxLength(248)
+                        .HasColumnType("character varying(248)");
 
-                    b.Property<string>("URL")
+                    b.Property<string>("ImageURL")
                         .IsRequired()
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("PageURL")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<int>("SequenceNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(248)
+                        .HasColumnType("character varying(248)");
 
                     b.HasKey("Id");
 
