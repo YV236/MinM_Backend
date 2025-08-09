@@ -217,7 +217,6 @@ namespace MinM_API.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ButtonText")
-                        .IsRequired()
                         .HasMaxLength(248)
                         .HasColumnType("character varying(248)");
 
@@ -235,7 +234,6 @@ namespace MinM_API.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Text")
-                        .IsRequired()
                         .HasMaxLength(248)
                         .HasColumnType("character varying(248)");
 

@@ -20,8 +20,7 @@ namespace MinM_API.Migrations
                 table: "BannerImages",
                 type: "character varying(248)",
                 maxLength: 248,
-                nullable: false,
-                defaultValue: "");
+                nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "PageURL",
@@ -36,8 +35,7 @@ namespace MinM_API.Migrations
                 table: "BannerImages",
                 type: "character varying(248)",
                 maxLength: 248,
-                nullable: false,
-                defaultValue: "");
+                nullable: true);
         }
 
         /// <inheritdoc />
@@ -48,7 +46,7 @@ namespace MinM_API.Migrations
                 table: "BannerImages");
 
             migrationBuilder.DropColumn(
-                name: "PageURL",
+                name: "ImageURL",
                 table: "BannerImages");
 
             migrationBuilder.DropColumn(

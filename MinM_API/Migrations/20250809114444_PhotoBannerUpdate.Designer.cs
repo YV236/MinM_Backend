@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MinM_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250809112858_PhotoBannerUpdate")]
+    [Migration("20250809114444_PhotoBannerUpdate")]
     partial class PhotoBannerUpdate
     {
         /// <inheritdoc />
@@ -220,7 +220,6 @@ namespace MinM_API.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ButtonText")
-                        .IsRequired()
                         .HasMaxLength(248)
                         .HasColumnType("character varying(248)");
 
@@ -238,7 +237,6 @@ namespace MinM_API.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Text")
-                        .IsRequired()
                         .HasMaxLength(248)
                         .HasColumnType("character varying(248)");
 

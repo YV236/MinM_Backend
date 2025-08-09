@@ -229,14 +229,12 @@ namespace MinM_API.Data
                     .HasMaxLength(2048);
 
                 entity.Property(b => b.ButtonText)
-                    .IsRequired()
                     .HasMaxLength(248);
 
                 entity.Property(b => b.Text)
-                    .IsRequired()
                     .HasMaxLength(248);
             });
-            
+
         }
     }
 }
