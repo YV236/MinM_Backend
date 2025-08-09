@@ -10,7 +10,7 @@ namespace MinM_API.Models
         public string Slug { get; set; } = string.Empty;
         public string? Description { get; set; }
 
-        public string? ImageURL { get; set; }
+        public string? FilePath { get; set; }
 
         public string? ParentCategoryId { get; set; }  // Зв'язок із батьківською категорією
         public virtual Category? ParentCategory { get; set; }

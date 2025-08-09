@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MinM_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250808185059_PhotoBannersUpdate")]
-    partial class PhotoBannersUpdate
+    [Migration("20250809112858_PhotoBannerUpdate")]
+    partial class PhotoBannerUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -289,7 +289,7 @@ namespace MinM_API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageURL")
+                    b.Property<string>("FilePath")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")

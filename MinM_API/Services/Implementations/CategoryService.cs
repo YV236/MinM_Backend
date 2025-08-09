@@ -54,7 +54,7 @@ namespace MinM_API.Services.Implementations
                     Slug = SlugExtension.GenerateSlug(addCategoryDto.Name),
                     Description = addCategoryDto.Description,
                     ParentCategoryId = addCategoryDto.ParentCategoryId,
-                    ImageURL = await photoService.UploadImageAsync(addCategoryDto.Image)
+                    FilePath = await photoService.UploadImageAsync(addCategoryDto.Image)
                 };
 
                 context.Categories.Add(category);
@@ -103,9 +103,9 @@ namespace MinM_API.Services.Implementations
 
                 if (updateCategoryDto.NewImage != null)
                 {
-                    var publicId = photoService.GetPublicIdFromUrl(category.ImageURL);
+                    var publicId = photoService.GetPublicIdFromUrl(category.FilePath);
                     await photoService.DeleteImageAsync(publicId);
-                    category.ImageURL = await photoService.UploadImageAsync(updateCategoryDto.NewImage);
+                    category.FilePath = await photoService.UploadImageAsync(updateCategoryDto.NewImage);
                 }
 
                 context.Categories.Update(category);
@@ -143,7 +143,7 @@ namespace MinM_API.Services.Implementations
                     deleteCategoryDto.Option = DeleteOption.Orphan;
                 }
 
-                var publicId = photoService.GetPublicIdFromUrl(category.ImageURL);
+                var publicId = photoService.GetPublicIdFromUrl(category.FilePath);
                 await photoService.DeleteImageAsync(publicId);
 
                 if (category.Subcategories!.Count != 0)

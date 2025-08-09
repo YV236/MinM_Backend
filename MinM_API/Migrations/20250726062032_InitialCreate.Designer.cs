@@ -222,7 +222,7 @@ namespace MinM_API.Migrations
                     b.Property<int>("SequenceNumber")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ImageURL")
+                    b.Property<string>("FilePath")
                         .IsRequired()
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");

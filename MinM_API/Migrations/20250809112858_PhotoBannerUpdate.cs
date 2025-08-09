@@ -5,11 +5,16 @@
 namespace MinM_API.Migrations
 {
     /// <inheritdoc />
-    public partial class PhotoBannersUpdate : Migration
+    public partial class PhotoBannerUpdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.RenameColumn(
+                name: "URL",
+                table: "BannerImages",
+                newName: "ImageURL");
+
             migrationBuilder.AddColumn<string>(
                 name: "ButtonText",
                 table: "BannerImages",
@@ -52,8 +57,8 @@ namespace MinM_API.Migrations
 
             migrationBuilder.RenameColumn(
                 name: "ImageURL",
-                table: "Categories",
-                newName: "FilePath");
+                table: "BannerImages",
+                newName: "URL");
         }
     }
 }
