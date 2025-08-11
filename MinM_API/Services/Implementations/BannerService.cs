@@ -25,6 +25,11 @@ namespace MinM_API.Services.Implementations
             {
                 var bannerImages = await context.BannerImages.OrderBy(bn => bn.SequenceNumber).ToListAsync();
 
+                if (bannerImages.Count == 0)
+                {
+                    return ResponseFactory.Success(new List<GetBannerImagesDto>(), "No banners in database");
+                }
+
                 var getBannerImages = new List<GetBannerImagesDto>();
 
                 foreach (var bannerImage in bannerImages)
