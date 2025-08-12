@@ -7,9 +7,9 @@ namespace MinM_API.Models
     {
         Created = 0,
         Canceled = 1,
-        Packaging = 2,
-        Delivering = 3,
-        Delivered = 4,
+        Paid = 2,
+        Pending = 3,
+        Delivering = 4,
         Received = 5,
         Returned = 6,
     }
