@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MinM_API.Models
 {
@@ -26,5 +27,7 @@ namespace MinM_API.Models
         public string SKU { get; set; } = string.Empty; // Product article
         public virtual List<ProductImage> ProductImages { get; set; } = []; // Product photo
         public virtual List<Color>? Colors { get; set; } = [];
+        public char SKUGroup { get; set; }
+        public int SKUSequence { get; set; }
     }
 }

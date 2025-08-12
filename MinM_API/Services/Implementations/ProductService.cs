@@ -22,6 +22,25 @@ namespace MinM_API.Services.Implementations
             PropertyNameCaseInsensitive = true
         };
 
+        private static char ExtractGroupFromSKU(string sku)
+        {
+            if (string.IsNullOrEmpty(sku) || sku.Length < 1)
+                return 'Z';
+            return char.ToUpper(sku[0]);
+        }
+
+        private static int ExtractSequenceFromSKU(string sku)
+        {
+            if (string.IsNullOrEmpty(sku) || !sku.Contains('-'))
+                return 1; // За замовчуванням 1 для нових продуктів
+
+            var parts = sku.Split('-');
+            if (parts.Length >= 2 && int.TryParse(parts[1], out int sequence))
+                return sequence;
+
+            return 1;
+        }
+
         public async Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto)
         {
             try
@@ -43,6 +62,9 @@ namespace MinM_API.Services.Implementations
                     IsNew = true,
                     ProductImages = []
                 };
+
+                product.SKUGroup = ExtractGroupFromSKU(product.SKU);
+                product.SKUSequence = ExtractSequenceFromSKU(product.SKU);
 
                 if (context.Products.Any(p => p.Slug == product.Slug))
                 {
@@ -177,6 +199,9 @@ namespace MinM_API.Services.Implementations
                     .Include(p => p.ProductVariants)
                     .Include(p => p.ProductImages)
                     .Include(p => p.Colors)
+                    .OrderBy(p => p.SKUGroup)
+                    .ThenBy(p => p.SKUSequence)
+                    .ThenBy(p => p.Name)
                     .ToListAsync();
 
                 if (productsList == null || productsList.Count == 0)
@@ -196,12 +221,7 @@ namespace MinM_API.Services.Implementations
                         .ToList();
                 }
 
-                var getProductsList = new List<GetProductDto>();
-
-                foreach (var product in productsList)
-                {
-                    getProductsList.Add(mapper.ProductToGetProductDto(product));
-                }
+                var getProductsList = productsList.Select(product => mapper.ProductToGetProductDto(product)).ToList();
 
                 logger.LogInformation("Retrieved {Count} products from database", getProductsList.Count);
 
