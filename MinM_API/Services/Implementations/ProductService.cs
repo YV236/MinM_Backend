@@ -161,6 +161,9 @@ namespace MinM_API.Services.Implementations
                 mapper.UpdateProductToProduct(updateProductDto, product);
                 product.Slug = SlugExtension.GenerateSlug(product.Name);
 
+                product.SKUGroup = ExtractGroupFromSKU(updateProductDto.SKU);
+                product.SKUSequence = ExtractSequenceFromSKU(updateProductDto.SKU);
+
                 await UpdateProductImagesAsync(updateProductDto);
 
                 var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == product.DiscountId);
