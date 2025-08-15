@@ -123,9 +123,9 @@ namespace MinM_API.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<OrderItem>()
-                .HasOne(oi => oi.Product)
+                .HasOne(oi => oi.Item)
                 .WithMany()
-                .HasForeignKey(oi => oi.ProductId)
+                .HasForeignKey(oi => oi.ItemId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.Entity<WishlistItem>()
