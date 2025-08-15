@@ -50,31 +50,31 @@ namespace MinM_API.Data
                 .HasMany(u => u.History)
                 .WithOne(o => o.User)
                 .HasForeignKey(o => o.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<User>()
                 .HasOne(u => u.Address)
                 .WithOne(a => a.User)
                 .HasForeignKey<Address>(a => a.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<CartItem>()
                .HasOne(c => c.User)
                .WithMany(u => u.Cart)
                .HasForeignKey(w => w.UserId)
-               .OnDelete(DeleteBehavior.NoAction);
+               .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<CartItem>()
                 .HasOne(c => c.Product)
                 .WithMany()
                 .HasForeignKey(w => w.ProductId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<CartItem>()
                 .HasOne(c => c.ProductVariant)
                 .WithMany()
                 .HasForeignKey(c => c.ProductVariantId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Discount>()
                 .Property(d => d.DiscountPercentage)
@@ -96,7 +96,7 @@ namespace MinM_API.Data
                 .HasOne(w => w.User)
                 .WithMany(u => u.WishList)
                 .HasForeignKey(w => w.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Review>()
                 .HasOne(r => r.User)
@@ -114,7 +114,7 @@ namespace MinM_API.Data
                 .HasOne(o => o.Address)
                 .WithMany()
                 .HasForeignKey(o => o.AddressId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<Order>()
                 .HasMany(o => o.OrderItems)
@@ -126,13 +126,13 @@ namespace MinM_API.Data
                 .HasOne(oi => oi.Item)
                 .WithMany()
                 .HasForeignKey(oi => oi.ItemId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<WishlistItem>()
                 .HasOne(w => w.Product)
                 .WithMany()
                 .HasForeignKey(w => w.ProductId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Review>()
                 .HasOne(r => r.Product)
