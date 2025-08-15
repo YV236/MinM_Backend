@@ -208,7 +208,7 @@ namespace MinM_API.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Address");
+                    b.ToTable("Address", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.BannerImage", b =>
@@ -239,7 +239,7 @@ namespace MinM_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BannerImages");
+                    b.ToTable("BannerImages", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.CartItem", b =>
@@ -273,7 +273,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.Category", b =>
@@ -308,7 +308,7 @@ namespace MinM_API.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.Color", b =>
@@ -329,7 +329,7 @@ namespace MinM_API.Migrations
                     b.HasIndex("ColorHex")
                         .IsUnique();
 
-                    b.ToTable("Colors");
+                    b.ToTable("Colors", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.Discount", b =>
@@ -366,7 +366,7 @@ namespace MinM_API.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Discounts");
+                    b.ToTable("Discounts", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.NewsletterSubscription", b =>
@@ -388,7 +388,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("NewsletterSubscriptions");
+                    b.ToTable("NewsletterSubscriptions", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.Order", b =>
@@ -443,7 +443,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.OrderItem", b =>
@@ -472,7 +472,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.Product", b =>
@@ -535,7 +535,7 @@ namespace MinM_API.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.ProductImage", b =>
@@ -558,7 +558,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages");
+                    b.ToTable("ProductImages", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.ProductVariant", b =>
@@ -592,7 +592,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductVariants");
+                    b.ToTable("ProductVariants", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.RefreshToken", b =>
@@ -624,7 +624,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.Review", b =>
@@ -656,7 +656,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.Season", b =>
@@ -683,7 +683,7 @@ namespace MinM_API.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Seasons");
+                    b.ToTable("Seasons", (string)null);
                 });
 
             modelBuilder.Entity("MinM_API.Models.User", b =>
@@ -787,7 +787,7 @@ namespace MinM_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("WishlistItems");
+                    b.ToTable("WishlistItems", (string)null);
                 });
 
             modelBuilder.Entity("ColorProduct", b =>
