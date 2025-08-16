@@ -2,7 +2,7 @@
 {
     public class AddOrderDto
     {
-        public string AddressId { get; set; } = Guid.NewGuid().ToString();
+        public string AddressId { get; set; }
         public Address Address { get; set; }
         public List<OrderItemDto> OrderItems { get; set; }
         public string PaymentMethod { get; set; } = string.Empty;
