@@ -13,12 +13,12 @@ namespace MinM_API.Services.Implementations
 {
     public class OrderService(DataContext context, IUserRepository userRepository, OrderItemMapper mapper) : IOrderService
     {
-        public async Task<ServiceResponse<int>> CreateOrder(AddOrderDto addOrderDto, ClaimsPrincipal user)
+        public async Task<ServiceResponse<long>> CreateOrder(AddOrderDto addOrderDto, ClaimsPrincipal user)
         {
             var getUser = await userRepository.FindUser(user, context);
             if (getUser == null)
             {
-                CreateUnauthorizedOrder(addOrderDto);
+                return ResponseFactory.Error<long>(0, "No users found");
             }
 
             try
@@ -54,16 +54,16 @@ namespace MinM_API.Services.Implementations
                     PaymentMethod = addOrderDto.PaymentMethod,
                     DeliveryMethod = addOrderDto.DeliveryMethod,
                     OrderNumber = GenerateOrderNumber(),
-                    UserFirstName = addOrderDto.UserFirstName,
-                    UserLastName = addOrderDto.UserLastName,
-                    UserEmail = addOrderDto.UserEmail,
-                    UserPhone = addOrderDto.UserPhone,
+                    UserFirstName = getUser.UserFirstName,
+                    UserLastName = getUser.UserLastName,
+                    UserEmail = getUser.Email,
+                    UserPhone = getUser.PhoneNumber,
                 };
 
                 await context.Orders.AddAsync(order);
                 await context.SaveChangesAsync();
 
-                return ResponseFactory.Success(1);
+                return ResponseFactory.Success(order.OrderNumber);
             }
             catch (Exception ex)
             {
@@ -72,14 +72,20 @@ namespace MinM_API.Services.Implementations
 
         }
 
-        private async Task CreateUnauthorizedOrder(AddOrderDto addOrderDto)
+        public async Task<ServiceResponse<long>> CreateUnauthorizedOrder(AddOrderDto addOrderDto)
         {
             try
             {
-                var address = await context.Address.FirstOrDefaultAsync(a => a.Street == addOrderDto.Address.Street &&
-                a.HomeNumber == addOrderDto.Address.HomeNumber && a.City == addOrderDto.Address.City && a.Region == addOrderDto.Address.Region &&
-                a.PostalCode == addOrderDto.Address.PostalCode && a.Country == addOrderDto.Address.Country);
+                // Перевіряємо чи адреса вже існує
+                var address = await context.Address.FirstOrDefaultAsync(a =>
+                    a.Street == addOrderDto.Address.Street &&
+                    a.HomeNumber == addOrderDto.Address.HomeNumber &&
+                    a.City == addOrderDto.Address.City &&
+                    a.Region == addOrderDto.Address.Region &&
+                    a.PostalCode == addOrderDto.Address.PostalCode &&
+                    a.Country == addOrderDto.Address.Country);
 
+                // Якщо адреса не знайдена — створити і додати
                 if (address == null)
                 {
                     address = new Models.Address
@@ -92,32 +98,47 @@ namespace MinM_API.Services.Implementations
                         PostalCode = addOrderDto.Address.PostalCode,
                         Country = addOrderDto.Address.Country
                     };
+
+                    await context.Address.AddAsync(address);
+                    await context.SaveChangesAsync();
                 }
+
+                // Створюємо OrderItems (асинхронно, наприклад, з перевіркою чи товари існують)
+                var orderItems = await CreateOrderItems(addOrderDto.OrderItems);
 
                 var order = new Order
                 {
                     Id = Guid.NewGuid().ToString(),
                     OrderDate = DateTime.UtcNow,
+                    AddressId = address.Id,   // зв’язок по Id 
                     Address = address,
-                    OrderItems = await CreateOrderItems(addOrderDto.OrderItems),
+                    OrderItems = orderItems,
                     Status = Status.Created,
-                    PaymentMethod = addOrderDto.PaymentMethod,
-                    DeliveryMethod = addOrderDto.DeliveryMethod,
+                    PaymentMethod = addOrderDto.PaymentMethod ?? "Card",
+                    DeliveryMethod = addOrderDto.DeliveryMethod ?? "NovaPost",
                     OrderNumber = GenerateOrderNumber(),
-                    UserFirstName = addOrderDto.UserFirstName,
-                    UserLastName = addOrderDto.UserLastName,
-                    UserEmail = addOrderDto.UserEmail,
-                    UserPhone = addOrderDto.UserPhone,
+                    // Всі user-поля для гостя
+                    UserId = null,
+                    User = null,
+                    UserFirstName = addOrderDto.UserFirstName ?? "",
+                    UserLastName = addOrderDto.UserLastName ?? "",
+                    UserEmail = addOrderDto.UserEmail ?? "",
+                    UserPhone = addOrderDto.UserPhone ?? ""
                 };
 
                 await context.Orders.AddAsync(order);
                 await context.SaveChangesAsync();
+
+                return ResponseFactory.Success(order.OrderNumber, "Order created successfully");
             }
             catch (Exception ex)
             {
-                throw ex;
+                // Можна залогувати помилку
+                Console.WriteLine($"Error in CreateUnauthorizedOrder: {ex.Message}");
+                return ResponseFactory.Error<long>(0, "Internal error");
             }
         }
+
 
         private async Task<List<OrderItem>> CreateOrderItems(List<OrderItemDto> orderItems)
         {
