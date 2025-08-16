@@ -4,7 +4,7 @@
     {
         public string Id { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
-        public string UserId { get; set; } = "guest";
+        public string? UserId { get; set; } = "guest";
         public virtual User? User { get; set; } = null;
         public string AddressId { get; set; }
         public virtual Address Address { get; set; } = null!;
