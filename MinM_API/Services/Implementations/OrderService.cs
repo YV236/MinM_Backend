@@ -5,13 +5,13 @@ using MinM_API.Dtos.Order;
 using MinM_API.Extension;
 using MinM_API.Mappers;
 using MinM_API.Models;
-using MinM_API.Repositories.Implementations;
+using MinM_API.Repositories.Interfaces;
 using MinM_API.Services.Interfaces;
 using System.Security.Claims;
 
 namespace MinM_API.Services.Implementations
 {
-    public class OrderService(DataContext context, UserRepository userRepository, OrderItemMapper mapper) : IOrderService
+    public class OrderService(DataContext context, IUserRepository userRepository, OrderItemMapper mapper) : IOrderService
     {
         public async Task<ServiceResponse<int>> CreateOrder(AddOrderDto addOrderDto, ClaimsPrincipal user)
         {
@@ -32,6 +32,7 @@ namespace MinM_API.Services.Implementations
                     address = new Models.Address
                     {
                         Id = Guid.NewGuid().ToString(),
+                        UserId = getUser.Id,
                         Street = addOrderDto.Address.Street,
                         HomeNumber = addOrderDto.Address.HomeNumber,
                         City = addOrderDto.Address.City,
@@ -44,7 +45,7 @@ namespace MinM_API.Services.Implementations
                 var order = new Order
                 {
                     Id = Guid.NewGuid().ToString(),
-                    OrderDate = DateTime.Now,
+                    OrderDate = DateTime.UtcNow,
                     UserId = getUser.Id,
                     User = getUser,
                     Address = address,
@@ -96,7 +97,7 @@ namespace MinM_API.Services.Implementations
                 var order = new Order
                 {
                     Id = Guid.NewGuid().ToString(),
-                    OrderDate = DateTime.Now,
+                    OrderDate = DateTime.UtcNow,
                     Address = address,
                     OrderItems = await CreateOrderItems(addOrderDto.OrderItems),
                     Status = Status.Created,
@@ -121,10 +122,14 @@ namespace MinM_API.Services.Implementations
         private async Task<List<OrderItem>> CreateOrderItems(List<OrderItemDto> orderItems)
         {
             var result = new List<OrderItem>();
+            var itemToAdd = new OrderItem();
 
             foreach (var item in orderItems)
             {
-                result.Add(mapper.OrderItemDtoToOrderItem(item));
+                itemToAdd = mapper.OrderItemDtoToOrderItem(item);
+                itemToAdd.Id = Guid.NewGuid().ToString();
+
+                result.Add(itemToAdd);
             }
             return result;
         }
