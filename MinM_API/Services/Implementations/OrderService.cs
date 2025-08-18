@@ -54,10 +54,10 @@ namespace MinM_API.Services.Implementations
                     PaymentMethod = addOrderDto.PaymentMethod,
                     DeliveryMethod = addOrderDto.DeliveryMethod,
                     OrderNumber = GenerateOrderNumber(),
-                    RecipientFirstName = getUser.UserFirstName,
-                    RecipientLastName = getUser.UserLastName,
-                    RecipientEmail = getUser.Email,
-                    RecipientPhone = getUser.PhoneNumber,
+                    RecipientFirstName = addOrderDto.RecipientFirstName,
+                    RecipientLastName = addOrderDto.RecipientLastName,
+                    RecipientEmail = addOrderDto.RecipientEmail,
+                    RecipientPhone = addOrderDto.RecipientEmail,
                 };
 
                 await context.Orders.AddAsync(order);
