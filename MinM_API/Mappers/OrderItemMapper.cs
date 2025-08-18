@@ -11,5 +11,11 @@ namespace MinM_API.Mappers
         [MapperIgnoreSource(nameof(OrderItem.Order))]
         [MapperIgnoreSource(nameof(OrderItem.Item))]
         public partial OrderItem OrderItemDtoToOrderItem(OrderItemDto orderItemDto);
+
+
+        [MapperIgnoreSource(nameof(OrderItem.Id))]
+        [MapperIgnoreSource(nameof(OrderItem.Order))]
+        [MapperIgnoreSource(nameof(OrderItem.Item))]
+        public partial OrderItemDto OrderItemToOrderItemDto(OrderItem orderItem);
     }
 }
