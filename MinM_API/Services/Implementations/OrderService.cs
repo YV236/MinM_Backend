@@ -54,10 +54,10 @@ namespace MinM_API.Services.Implementations
                     PaymentMethod = addOrderDto.PaymentMethod,
                     DeliveryMethod = addOrderDto.DeliveryMethod,
                     OrderNumber = GenerateOrderNumber(),
-                    UserFirstName = getUser.UserFirstName,
-                    UserLastName = getUser.UserLastName,
-                    UserEmail = getUser.Email,
-                    UserPhone = getUser.PhoneNumber,
+                    RecipientFirstName = getUser.UserFirstName,
+                    RecipientLastName = getUser.UserLastName,
+                    RecipientEmail = getUser.Email,
+                    RecipientPhone = getUser.PhoneNumber,
                 };
 
                 await context.Orders.AddAsync(order);
@@ -120,10 +120,10 @@ namespace MinM_API.Services.Implementations
                     // Всі user-поля для гостя
                     UserId = null,
                     User = null,
-                    UserFirstName = addOrderDto.UserFirstName ?? "",
-                    UserLastName = addOrderDto.UserLastName ?? "",
-                    UserEmail = addOrderDto.UserEmail ?? "",
-                    UserPhone = addOrderDto.UserPhone ?? ""
+                    RecipientFirstName = addOrderDto.RecipientFirstName ?? "",
+                    RecipientLastName = addOrderDto.RecipientLastName ?? "",
+                    RecipientEmail = addOrderDto.RecipientEmail ?? "",
+                    RecipientPhone = addOrderDto.RecipientPhone ?? ""
                 };
 
                 await context.Orders.AddAsync(order);
@@ -133,36 +133,9 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                // Можна залогувати помилку
                 Console.WriteLine($"Error in CreateUnauthorizedOrder: {ex.Message}");
                 return ResponseFactory.Error<long>(0, "Internal error");
             }
-        }
-
-
-        private async Task<List<OrderItem>> CreateOrderItems(List<OrderItemDto> orderItems)
-        {
-            var result = new List<OrderItem>();
-            var itemToAdd = new OrderItem();
-
-            foreach (var item in orderItems)
-            {
-                itemToAdd = mapper.OrderItemDtoToOrderItem(item);
-                itemToAdd.Id = Guid.NewGuid().ToString();
-
-                result.Add(itemToAdd);
-            }
-            return result;
-        }
-
-        private static long GenerateOrderNumber()
-        {
-            var guid = Guid.NewGuid();
-            var bytes = guid.ToByteArray();
-
-            var result = BitConverter.ToInt64(bytes, 0);
-
-            return Math.Abs(result);
         }
 
         public async Task<ServiceResponse<long>> CancelOrder(ClaimsPrincipal user, string orderId)

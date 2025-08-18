@@ -8,9 +8,9 @@
         public string PaymentMethod { get; set; } = string.Empty;
         public string DeliveryMethod { get; set; } = string.Empty;
 
-        public string UserFirstName { get; set; } = string.Empty;
-        public string UserLastName { get; set; }
-        public string UserEmail { get; set; }
-        public string UserPhone { get; set; }
+        public string RecipientFirstName { get; set; } = string.Empty;
+        public string RecipientLastName { get; set; }
+        public string RecipientEmail { get; set; }
+        public string RecipientPhone { get; set; }
     }
 }
