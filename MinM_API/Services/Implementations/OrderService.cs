@@ -163,25 +163,56 @@ namespace MinM_API.Services.Implementations
 
         public async Task<ServiceResponse<long>> SetOrderAsPaid(string orderId)
         {
+            using var transaction = await context.Database.BeginTransactionAsync();
             try
             {
-                var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+                var order = await context.Orders
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.Item)
+                    .FirstOrDefaultAsync(o => o.Id == orderId);
+
                 if (order == null)
                 {
                     return ResponseFactory.Error<long>(0, "No orders found");
                 }
 
+                foreach (var orderItem in order.OrderItems)
+                {
+                    var productVariant = orderItem.Item;
+
+                    if (productVariant == null || productVariant.UnitsInStock < orderItem.Quantity)
+                    {
+                        await transaction.RollbackAsync();
+                        return ResponseFactory.Error<long>(0, $"Insufficient stock for product {orderItem.Item.Name}");
+                    }
+                }
+
                 order.Status = Status.Paid;
 
-                await context.SaveChangesAsync();
+                foreach (var orderItem in order.OrderItems)
+                {
+                    var productVariant = orderItem.Item;
 
-                return ResponseFactory.Success<long>(1, "Order was paid");
+                    productVariant.UnitsInStock -= orderItem.Quantity;
+
+                    if (productVariant.UnitsInStock <= 0)
+                    {
+                        productVariant.IsStock = false;
+                    }
+                }
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return ResponseFactory.Success<long>(1, "Order was paid and stock updated");
             }
             catch (Exception ex)
             {
-                return ResponseFactory.Error<long>(0, "Internal error");
+                await transaction.RollbackAsync();
+                return ResponseFactory.Error<long>(0, $"Error processing payment: {ex.Message}");
             }
         }
+
 
         public async Task<ServiceResponse<long>> ChangeOrderStatus(string orderId, Status status)
         {
