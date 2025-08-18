@@ -9,6 +9,7 @@ using MinM_API.Mappers;
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 
@@ -307,6 +308,45 @@ namespace MinM_API.Services.Implementations
             catch (Exception ex)
             {
                 logger.LogError(ex, "Fail: Error while retrieving product from database with such slug. Slug: {slug}", slug);
+                return ResponseFactory.Error(new GetProductDto(), "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<GetProductDto>> GetByVariantId(string variantId)
+        {
+
+            try
+            {
+                var product = await context.Products
+                    .Include(p => p.Discount)
+                    .Include(p => p.Season)
+                    .Include(p => p.ProductVariants)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.Colors)
+                    .FirstOrDefaultAsync(p => p.ProductVariants.Any(v => v.Id == variantId));
+
+
+                if (product == null)
+                {
+                    logger.LogInformation("No products found in database");
+                    return ResponseFactory.Error(new GetProductDto(), "There are no products", HttpStatusCode.NotFound);
+                }
+
+                product.ProductVariants = product.ProductVariants
+                    .OrderBy(pv => decimal.Parse(pv.Name, CultureInfo.InvariantCulture))
+                    .ToList();
+
+                product.ProductImages = product.ProductImages
+                    .OrderBy(pi => pi.SequenceNumber)
+                    .ToList();
+
+                var getProduct = mapper.ProductToGetProductDto(product);
+
+                return ResponseFactory.Success(getProduct, "Successful extraction of product by slug");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while retrieving product from database with such variant.");
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
             }
         }

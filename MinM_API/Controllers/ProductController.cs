@@ -73,6 +73,15 @@ namespace MinM_API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+        [HttpGet]
+        [Route("byVariant")]
+        public async Task<ActionResult<ServiceResponse<GetProductDto>>> GetByVariantId(string variantId)
+        {
+            var response = await productService.GetByVariantId(variantId);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
         [HttpGet("GetAllColors")]
         public async Task<ActionResult<ServiceResponse<List<ColorDto>>>> GetAllColors()
         {
