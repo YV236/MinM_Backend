@@ -164,5 +164,92 @@ namespace MinM_API.Services.Implementations
 
             return Math.Abs(result);
         }
+
+        public async Task<ServiceResponse<long>> CancelOrder(ClaimsPrincipal user, string orderId)
+        {
+            var getUser = await userRepository.FindUser(user, context);
+            if (getUser == null)
+            {
+                return ResponseFactory.Error<long>(0, "No users found");
+            }
+
+            try
+            {
+                var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+                if (order == null)
+                {
+                    return ResponseFactory.Error<long>(0, "No orders found");
+                }
+
+                order.Status = Status.Canceled;
+
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success<long>(1, "Order was canceled");
+            }
+            catch(Exception ex)
+            {
+                return ResponseFactory.Error<long>(0, "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<long>> SetOrderAsPaid(string orderId)
+        {
+            try
+            {
+                var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+                if (order == null)
+                {
+                    return ResponseFactory.Error<long>(0, "No orders found");
+                }
+
+                order.Status = Status.Paid;
+
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success<long>(1, "Order was canceled");
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Error<long>(0, "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<long>> ChangeOrderStatus(string orderId, Status status)
+        {
+            try
+            {
+                var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+                if (order == null)
+                {
+                    return ResponseFactory.Error<long>(0, "No orders found");
+                }
+
+                order.Status = status;
+
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success<long>(1, "Order was canceled");
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Error<long>(0, "Internal error");
+            }
+        }
+
+        public Task<ServiceResponse<List<OrderDto>>> GetAllOrders()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceResponse<List<OrderDto>>> GetAllUserOrders(ClaimsPrincipal user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceResponse<OrderDto>> GetUserOrders(ClaimsPrincipal user, string orderId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
