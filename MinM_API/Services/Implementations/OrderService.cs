@@ -175,7 +175,7 @@ namespace MinM_API.Services.Implementations
 
                 await context.SaveChangesAsync();
 
-                return ResponseFactory.Success<long>(1, "Order was canceled");
+                return ResponseFactory.Success<long>(1, "Order was paid");
             }
             catch (Exception ex)
             {
@@ -197,7 +197,7 @@ namespace MinM_API.Services.Implementations
 
                 await context.SaveChangesAsync();
 
-                return ResponseFactory.Success<long>(1, "Order was canceled");
+                return ResponseFactory.Success<long>(1, "Order status was changed by admin");
             }
             catch (Exception ex)
             {
