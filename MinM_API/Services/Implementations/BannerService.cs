@@ -131,7 +131,8 @@ namespace MinM_API.Services.Implementations
                 context.BannerImages.Remove(imageToRemove);
             }
 
-            context.ProductImages.RemoveRange();
+            var all = context.BannerImages.ToList();
+            context.BannerImages.RemoveRange(all);
 
             foreach (var image in existingImages)
             {
