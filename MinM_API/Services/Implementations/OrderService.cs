@@ -210,19 +210,184 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public Task<ServiceResponse<List<OrderDto>>> GetAllOrders()
+        public async Task<ServiceResponse<List<OrderDto>>> GetAllOrders()
         {
-            throw new NotImplementedException();
+            try
+            {
+                var orders = await context.Orders.ToListAsync();
+                if (orders.Count == 0)
+                {
+                    return ResponseFactory.Success(new List<OrderDto>(), "No orders found");
+                }
+
+                var getOrders = new List<OrderDto>();
+
+                foreach(var order in orders)
+                {
+                    getOrders.Add(new OrderDto
+                    {
+                        Id = order.Id,
+                        AddressId = order.AddressId,
+                        Address = new Dtos.Address
+                        {
+                            Street = order.Address.Street ?? "",
+                            HomeNumber = order.Address.HomeNumber ?? "",
+                            City = order.Address.City ?? "",
+                            Region = order.Address.Region ?? "",
+                            PostalCode = order.Address.PostalCode ?? "",
+                            Country = order.Address.Country ?? "",
+                        },
+                        OrderItems = await MapAsync(order.OrderItems),
+                        PaymentMethod = order.PaymentMethod,
+                        DeliveryMethod = order.DeliveryMethod,
+                        RecipientFirstName = order.RecipientFirstName,
+                        RecipientLastName = order.RecipientLastName,
+                        RecipientEmail = order.RecipientEmail,
+                        RecipientPhone = order.RecipientPhone,
+                    });
+                }
+
+                return ResponseFactory.Success(getOrders, "Success");
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Error<List<OrderDto>>(null, "Internal error");
+            }
         }
 
-        public Task<ServiceResponse<List<OrderDto>>> GetAllUserOrders(ClaimsPrincipal user)
+        public async Task<ServiceResponse<List<OrderDto>>> GetAllUserOrders(ClaimsPrincipal user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var getUser = await userRepository.FindUser(user, context);
+                if (getUser == null)
+                {
+                    return ResponseFactory.Error<List<OrderDto>>(null, "No users found");
+                }
+
+                var orders = await context.Orders.Where(o => o.UserId == getUser.Id).ToListAsync();
+                if (orders.Count == 0)
+                {
+                    return ResponseFactory.Success(new List<OrderDto>(), "No orders found");
+                }
+
+                var getOrders = new List<OrderDto>();
+
+                foreach (var order in orders)
+                {
+                    getOrders.Add(new OrderDto
+                    {
+                        Id = order.Id,
+                        AddressId = order.AddressId,
+                        Address = new Dtos.Address
+                        {
+                            Street = order.Address.Street ?? "",
+                            HomeNumber = order.Address.HomeNumber ?? "",
+                            City = order.Address.City ?? "",
+                            Region = order.Address.Region ?? "",
+                            PostalCode = order.Address.PostalCode ?? "",
+                            Country = order.Address.Country ?? "",
+                        },
+                        OrderItems = await MapAsync(order.OrderItems),
+                        PaymentMethod = order.PaymentMethod,
+                        DeliveryMethod = order.DeliveryMethod,
+                        RecipientFirstName = order.RecipientFirstName,
+                        RecipientLastName = order.RecipientLastName,
+                        RecipientEmail = order.RecipientEmail,
+                        RecipientPhone = order.RecipientPhone,
+                    });
+                }
+
+                return ResponseFactory.Success(getOrders, "Success");
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Error<List<OrderDto>>(null, "Internal error");
+            }
         }
 
-        public Task<ServiceResponse<OrderDto>> GetUserOrders(ClaimsPrincipal user, string orderId)
+        public async Task<ServiceResponse<OrderDto>> GetUserOrders(ClaimsPrincipal user, string orderId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var getUser = await userRepository.FindUser(user, context);
+                if (getUser == null)
+                {
+                    return ResponseFactory.Error<OrderDto>(null, "No users found");
+                }
+
+                var order = await context.Orders.FirstOrDefaultAsync(o => o.UserId == getUser.Id && o.Id == orderId);
+                if (order is null)
+                {
+                    return ResponseFactory.Success(new OrderDto(), "No orders found");
+                }
+                    
+                var getOrder = new OrderDto
+                {
+                    Id = order.Id,
+                    AddressId = order.AddressId,
+                    Address = new Dtos.Address
+                    {
+                        Street = order.Address.Street ?? "",
+                        HomeNumber = order.Address.HomeNumber ?? "",
+                        City = order.Address.City ?? "",
+                        Region = order.Address.Region ?? "",
+                        PostalCode = order.Address.PostalCode ?? "",
+                        Country = order.Address.Country ?? "",
+                    },
+                    OrderItems = await MapAsync(order.OrderItems),
+                    PaymentMethod = order.PaymentMethod,
+                    DeliveryMethod = order.DeliveryMethod,
+                    RecipientFirstName = order.RecipientFirstName,
+                    RecipientLastName = order.RecipientLastName,
+                    RecipientEmail = order.RecipientEmail,
+                    RecipientPhone = order.RecipientPhone,
+                };
+
+                return ResponseFactory.Success(getOrder, "Success");
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Error<OrderDto>(null, "Internal error");
+            }
+        }
+
+        private async Task<List<OrderItemDto>> MapAsync(List<OrderItem> orderItems)
+        {
+            var result = new List<OrderItemDto>();
+
+            foreach (var item in orderItems)
+            {
+                result.Add(mapper.OrderItemToOrderItemDto(item));
+            }
+
+            return result;
+        }
+
+
+        private async Task<List<OrderItem>> CreateOrderItems(List<OrderItemDto> orderItems)
+        {
+            var result = new List<OrderItem>();
+            var itemToAdd = new OrderItem();
+
+            foreach (var item in orderItems)
+            {
+                itemToAdd = mapper.OrderItemDtoToOrderItem(item);
+                itemToAdd.Id = Guid.NewGuid().ToString();
+
+                result.Add(itemToAdd);
+            }
+            return result;
+        }
+
+        private static long GenerateOrderNumber()
+        {
+            var guid = Guid.NewGuid();
+            var bytes = guid.ToByteArray();
+
+            var result = BitConverter.ToInt64(bytes, 0);
+
+            return Math.Abs(result);
         }
     }
 }
