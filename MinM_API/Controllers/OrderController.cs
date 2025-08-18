@@ -38,11 +38,11 @@ namespace MinM_API.Controllers
         [HttpPut]
         [Route("cancel/{orderId}")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
-        public async Task<ActionResult<ServiceResponse<int>>> CanceleOrder([FromRoute] string orderId)
+        public async Task<ActionResult<ServiceResponse<int>>> CancelOrder([FromRoute] string orderId)
         {
-            var respone = await orderService.CancelOrder(User, orderId);
+            var response = await orderService.CancelOrder(User, orderId);
 
-            return StatusCode((int)respone.StatusCode, respone);
+            return StatusCode((int)response.StatusCode, response);
         }
 
 
@@ -50,20 +50,20 @@ namespace MinM_API.Controllers
         [Route("paid/{orderId}")]
         public async Task<ActionResult<ServiceResponse<int>>> SetOrderAsPaid([FromRoute] string orderId)
         {
-            var respone = await orderService.SetOrderAsPaid(orderId);
+            var response = await orderService.SetOrderAsPaid(orderId);
 
-            return StatusCode((int)respone.StatusCode, respone);
+            return StatusCode((int)response.StatusCode, response);
         }
 
 
         [HttpPut]
-        [Route("cancel/{orderId}")]
+        [Route("change/{orderId}")]
         [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> ChangeOrderStatus([FromRoute] string orderId, [FromBody] Status status)
         {
-            var respone = await orderService.ChangeOrderStatus(orderId, status);
+            var response = await orderService.ChangeOrderStatus(orderId, status);
 
-            return StatusCode((int)respone.StatusCode, respone);
+            return StatusCode((int)response.StatusCode, response);
         }
 
         [HttpGet]
@@ -81,9 +81,9 @@ namespace MinM_API.Controllers
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<List<OrderDto>>>> GetAllUserOrders()
         {
-            var reposne = await orderService.GetAllUserOrders(User);
+            var response = await orderService.GetAllUserOrders(User);
 
-            return StatusCode((int)reposne.StatusCode, reposne);
+            return StatusCode((int)response.StatusCode, response);
         }
 
         [HttpGet]
@@ -91,9 +91,9 @@ namespace MinM_API.Controllers
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<List<OrderDto>>>> GetUserOrders([FromRoute] string orderId)
         {
-            var reposne = await orderService.GetUserOrders(User, orderId);
+            var response = await orderService.GetUserOrders(User, orderId);
 
-            return StatusCode((int)reposne.StatusCode, reposne);
+            return StatusCode((int)response.StatusCode, response);
         }
     }
 }

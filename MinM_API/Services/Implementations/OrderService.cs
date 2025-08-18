@@ -67,16 +67,14 @@ namespace MinM_API.Services.Implementations
             }
             catch (Exception ex)
             {
-                throw ex;
+                return ResponseFactory.Error<long>(0, "Internal error");
             }
-
         }
 
         public async Task<ServiceResponse<long>> CreateUnauthorizedOrder(AddOrderDto addOrderDto)
         {
             try
             {
-                // Перевіряємо чи адреса вже існує
                 var address = await context.Address.FirstOrDefaultAsync(a =>
                     a.Street == addOrderDto.Address.Street &&
                     a.HomeNumber == addOrderDto.Address.HomeNumber &&
@@ -85,7 +83,6 @@ namespace MinM_API.Services.Implementations
                     a.PostalCode == addOrderDto.Address.PostalCode &&
                     a.Country == addOrderDto.Address.Country);
 
-                // Якщо адреса не знайдена — створити і додати
                 if (address == null)
                 {
                     address = new Models.Address
@@ -103,21 +100,19 @@ namespace MinM_API.Services.Implementations
                     await context.SaveChangesAsync();
                 }
 
-                // Створюємо OrderItems (асинхронно, наприклад, з перевіркою чи товари існують)
                 var orderItems = await CreateOrderItems(addOrderDto.OrderItems);
 
                 var order = new Order
                 {
                     Id = Guid.NewGuid().ToString(),
                     OrderDate = DateTime.UtcNow,
-                    AddressId = address.Id,   // зв’язок по Id 
+                    AddressId = address.Id,
                     Address = address,
                     OrderItems = orderItems,
                     Status = Status.Created,
                     PaymentMethod = addOrderDto.PaymentMethod ?? "Card",
                     DeliveryMethod = addOrderDto.DeliveryMethod ?? "NovaPost",
                     OrderNumber = GenerateOrderNumber(),
-                    // Всі user-поля для гостя
                     UserId = null,
                     User = null,
                     RecipientFirstName = addOrderDto.RecipientFirstName ?? "",
@@ -363,7 +358,6 @@ namespace MinM_API.Services.Implementations
 
             return result;
         }
-
 
         private async Task<List<OrderItem>> CreateOrderItems(List<OrderItemDto> orderItems)
         {
