@@ -89,9 +89,9 @@ namespace MinM_API.Controllers
         [HttpGet]
         [Route("my/{orderId}")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
-        public async Task<ActionResult<ServiceResponse<List<OrderDto>>>> GetUserOrders([FromRoute] string orderId)
+        public async Task<ActionResult<ServiceResponse<List<OrderDto>>>> GetUserOrder([FromRoute] string orderId)
         {
-            var response = await orderService.GetUserOrders(User, orderId);
+            var response = await orderService.GetUserOrder(orderId);
 
             return StatusCode((int)response.StatusCode, response);
         }

@@ -301,17 +301,11 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task<ServiceResponse<OrderDto>> GetUserOrders(ClaimsPrincipal user, string orderId)
+        public async Task<ServiceResponse<OrderDto>> GetUserOrder(string orderId)
         {
             try
             {
-                var getUser = await userRepository.FindUser(user, context);
-                if (getUser == null)
-                {
-                    return ResponseFactory.Error<OrderDto>(null, "No users found");
-                }
-
-                var order = await context.Orders.FirstOrDefaultAsync(o => o.UserId == getUser.Id && o.Id == orderId);
+                var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
                 if (order is null)
                 {
                     return ResponseFactory.Success(new OrderDto(), "No orders found");
