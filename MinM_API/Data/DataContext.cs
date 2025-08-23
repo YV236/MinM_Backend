@@ -180,6 +180,12 @@ namespace MinM_API.Data
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            builder.Entity<Product>()
+                .HasMany(p => p.Reviews)
+                .WithOne(r => r.Product)
+                .HasForeignKey(r => r.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.Entity<Category>()
                 .HasIndex(c => c.Name)
             .IsUnique();
