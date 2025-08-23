@@ -94,6 +94,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IWishListService, WishListService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IBannerService, BannerService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<JwtTokenService>();
 
 builder.Services.AddSingleton<ProductMapper>();
@@ -102,6 +103,7 @@ builder.Services.AddSingleton<UserMapper>();
 builder.Services.AddSingleton<CategoryMapper>();
 builder.Services.AddSingleton<DiscountMapper>();
 builder.Services.AddSingleton<CartMapper>();
+builder.Services.AddSingleton<OrderItemMapper>();
 
 builder.Services.AddCors(options =>
 {

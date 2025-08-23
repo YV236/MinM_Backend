@@ -11,5 +11,6 @@ namespace MinM_API.Services.Interfaces
         public Task<ServiceResponse<GetProductDto>> GetProductById(string id);
         public Task<ServiceResponse<GetProductDto>> GetProductBySlug(string slug);
         public Task<ServiceResponse<int>> DeleteProduct(string id);
+        public Task<ServiceResponse<GetProductDto>> GetByVariantId(string variantId);
     }
 }

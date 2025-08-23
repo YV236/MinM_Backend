@@ -4,7 +4,7 @@
     {
         public string Id { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
-        public string UserId { get; set; } = "guest";
+        public string? UserId { get; set; } = "guest";
         public virtual User? User { get; set; } = null;
         public string AddressId { get; set; }
         public virtual Address Address { get; set; } = null!;
@@ -14,9 +14,9 @@
         public string DeliveryMethod { get; set; } = "NovaPost";
         public long OrderNumber { get; set; }
 
-        public string UserFirstName { get; set; }
-        public string UserLastName { get; set; }
-        public string UserEmail { get; set; }
-        public string UserPhone { get; set; }
+        public string RecipientFirstName { get; set; }
+        public string RecipientLastName { get; set; }
+        public string RecipientEmail { get; set; }
+        public string RecipientPhone { get; set; }
     }
 }
