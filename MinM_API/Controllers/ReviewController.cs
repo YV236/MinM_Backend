@@ -16,7 +16,7 @@ namespace MinM_API.Controllers
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> CreateReview(AddReviewDto request)
         {
-            var response = await reviewService.CreateReview(request);
+            var response = await reviewService.CreateReview(request, User);
 
             return StatusCode((int)response.StatusCode, response);
         }
@@ -26,16 +26,16 @@ namespace MinM_API.Controllers
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> EditReview(EditReviewDto request)
         {
-            var response = await reviewService.EditReview(request);
+            var response = await reviewService.EditReview(request, User);
 
             return StatusCode((int)response.StatusCode, response);
         }
 
         [HttpGet]
-        [Route("all")]
-        public async Task<ActionResult<ServiceResponse<List<GetReviewDto>>>> GetAllProductReviews()
+        [Route("all/{productId}")]
+        public async Task<ActionResult<ServiceResponse<List<GetReviewDto>>>> GetAllProductReviews([FromRoute] string productId)
         {
-            var response = await reviewService.GetAllProductReviews();
+            var response = await reviewService.GetAllProductReviews(productId);
 
             return StatusCode((int)response.StatusCode, response);
         }
