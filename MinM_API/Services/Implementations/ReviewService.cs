@@ -141,11 +141,18 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task<ServiceResponse<int>> DeleteReview(string reviewId)
+        public async Task<ServiceResponse<int>> DeleteReview(string reviewId, ClaimsPrincipal user)
         {
             try
             {
-                var productReview = await context.Reviews.FirstOrDefaultAsync(r => r.Id == reviewId);
+                var getUser = await userRepository.FindUser(user, context);
+
+                if (getUser is null)
+                {
+                    return ResponseFactory.Error(0, "User not found", HttpStatusCode.NotFound);
+                }
+
+                var productReview = await context.Reviews.FirstOrDefaultAsync(r => r.Id == reviewId && r.UserId == getUser.Id);
 
                 if (productReview is null)
                 {

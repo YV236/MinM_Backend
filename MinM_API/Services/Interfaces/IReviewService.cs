@@ -10,6 +10,6 @@ namespace MinM_API.Services.Interfaces
         Task<ServiceResponse<int>> EditReview(EditReviewDto request, ClaimsPrincipal user);
         Task<ServiceResponse<List<GetReviewDto>>> GetAllProductReviews(string productId);
         Task<ServiceResponse<GetReviewDto>> GetProductReview(string reviewId);
-        Task<ServiceResponse<int>> DeleteReview(string reviewId);
+        Task<ServiceResponse<int>> DeleteReview(string reviewId, ClaimsPrincipal user);
     }
 }

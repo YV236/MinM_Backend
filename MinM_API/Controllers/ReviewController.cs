@@ -54,7 +54,7 @@ namespace MinM_API.Controllers
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
         public async Task<ActionResult<ServiceResponse<int>>> DeleteReview([FromRoute] string reviewId)
         {
-            var response = await reviewService.DeleteReview(reviewId);
+            var response = await reviewService.DeleteReview(reviewId, User);
 
             return StatusCode((int)response.StatusCode, response);
         }
