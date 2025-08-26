@@ -149,10 +149,10 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error<long>(0, "No orders found");
                 }
 
-                if (order.Status is not Status.Created && order.Status is not Status.Canceled)
-                {
-                    var returnResult = await ReturnOrder(order.Id);
-                }
+                //if (order.Status is not Status.Created && order.Status is not Status.Canceled)
+                //{
+                //    var returnResult = await ReturnOrder(order.Id);
+                //}
 
                 order.Status = Status.Canceled;
 
