@@ -5,17 +5,17 @@ using MinM_API.Dtos.Review;
 using MinM_API.Extension;
 using MinM_API.Mappers;
 using MinM_API.Models;
-using MinM_API.Repositories.Implementations;
 using MinM_API.Services.Interfaces;
 using System.Security.Claims;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using MinM_API.Repositories.Interfaces;
 
 namespace MinM_API.Services.Implementations
 {
     public class ReviewService(DataContext context, ProductMapper mapper,
-        ILogger<ProductService> logger, UserRepository userRepository) : IReviewService
+        ILogger<ReviewService> logger, IUserRepository userRepository) : IReviewService
     {
         public async Task<ServiceResponse<int>> CreateReview(AddReviewDto request, ClaimsPrincipal user)
         {
