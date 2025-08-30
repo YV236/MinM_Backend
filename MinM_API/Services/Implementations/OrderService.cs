@@ -27,14 +27,14 @@ namespace MinM_API.Services.Implementations
                 Models.Address address = null;
 
                 // Визначаємо тип адреси на основі DTO
-                if (addOrderDto.Address is PostAddressDto postAddressDto)
+                if (addOrderDto.PostAddress is not null)
                 {
                     // Шукаємо існуючу PostAddress
                     address = await context.PostAddresses.FirstOrDefaultAsync(a =>
-                        a.Country == postAddressDto.Country &&
-                        a.City == postAddressDto.City &&
-                        a.Region == postAddressDto.Region &&
-                        a.PostDepartment == postAddressDto.PostDepartment);
+                        a.Country == addOrderDto.PostAddress.Country &&
+                        a.City == addOrderDto.PostAddress.City &&
+                        a.Region == addOrderDto.PostAddress.Region &&
+                        a.PostDepartment == addOrderDto.PostAddress.PostDepartment);
 
                     if (address == null)
                     {
@@ -42,26 +42,26 @@ namespace MinM_API.Services.Implementations
                         var newPostAddress = new PostAddress
                         {
                             Id = Guid.NewGuid().ToString(),
-                            Country = postAddressDto.Country,
-                            City = postAddressDto.City,
-                            Region = postAddressDto.Region,
-                            PostDepartment = postAddressDto.PostDepartment
+                            Country = addOrderDto.PostAddress.Country,
+                            City = addOrderDto.PostAddress.City,
+                            Region = addOrderDto.PostAddress.Region,
+                            PostDepartment = addOrderDto.PostAddress.PostDepartment
                         };
 
                         await context.PostAddresses.AddAsync(newPostAddress);
                         address = newPostAddress;
                     }
                 }
-                else if (addOrderDto.Address is UserAddressDto userAddressDto)
+                else if (addOrderDto.UserAddress is not null)
                 {
                     // Шукаємо існуючу UserAddress для цього користувача
                     address = await context.UserAddresses.FirstOrDefaultAsync(a =>
-                        a.Country == userAddressDto.Country &&
-                        a.City == userAddressDto.City &&
-                        a.Region == userAddressDto.Region &&
-                        a.Street == userAddressDto.Street &&
-                        a.HomeNumber == userAddressDto.HomeNumber &&
-                        a.PostalCode == userAddressDto.PostalCode &&
+                        a.Country == addOrderDto.UserAddress.Country &&
+                        a.City == addOrderDto.UserAddress.City &&
+                        a.Region == addOrderDto.UserAddress.Region &&
+                        a.Street == addOrderDto.UserAddress.Street &&
+                        a.HomeNumber == addOrderDto.UserAddress.HomeNumber &&
+                        a.PostalCode == addOrderDto.UserAddress.PostalCode &&
                         a.UserId == getUser.Id);
 
                     if (address == null)
@@ -70,12 +70,12 @@ namespace MinM_API.Services.Implementations
                         var newUserAddress = new UserAddress
                         {
                             Id = Guid.NewGuid().ToString(),
-                            Country = userAddressDto.Country,
-                            City = userAddressDto.City,
-                            Region = userAddressDto.Region,
-                            Street = userAddressDto.Street,
-                            HomeNumber = userAddressDto.HomeNumber,
-                            PostalCode = userAddressDto.PostalCode,
+                            Country = addOrderDto.UserAddress.Country,
+                            City = addOrderDto.UserAddress.City,
+                            Region = addOrderDto.UserAddress.Region,
+                            Street = addOrderDto.UserAddress.Street,
+                            HomeNumber = addOrderDto.UserAddress.HomeNumber,
+                            PostalCode = addOrderDto.UserAddress.PostalCode,
                             UserId = getUser.Id,
                             User = getUser
                         };
@@ -126,14 +126,14 @@ namespace MinM_API.Services.Implementations
                 Address address = null;
 
                 // Пошук існуючої адреси серед всіх типів адрес
-                if (addOrderDto.Address is PostAddressDto postAddressDto)
+                if (addOrderDto.PostAddress is not null)
                 {
                     // Шукаємо існуючу PostAddress
                     address = await context.PostAddresses.FirstOrDefaultAsync(a =>
-                        a.Country == postAddressDto.Country &&
-                        a.City == postAddressDto.City &&
-                        a.Region == postAddressDto.Region &&
-                        a.PostDepartment == postAddressDto.PostDepartment);
+                        a.Country == addOrderDto.PostAddress.Country &&
+                        a.City == addOrderDto.PostAddress.City &&
+                        a.Region == addOrderDto.PostAddress.Region &&
+                        a.PostDepartment == addOrderDto.PostAddress.PostDepartment);
 
                     if (address == null)
                     {
@@ -141,26 +141,26 @@ namespace MinM_API.Services.Implementations
                         var newPostAddress = new PostAddress
                         {
                             Id = Guid.NewGuid().ToString(),
-                            Country = postAddressDto.Country,
-                            City = postAddressDto.City,
-                            Region = postAddressDto.Region,
-                            PostDepartment = postAddressDto.PostDepartment
+                            Country = addOrderDto.PostAddress.Country,
+                            City = addOrderDto.PostAddress.City,
+                            Region = addOrderDto.PostAddress.Region,
+                            PostDepartment = addOrderDto.PostAddress.PostDepartment
                         };
 
                         await context.PostAddresses.AddAsync(newPostAddress);
                         address = newPostAddress;
                     }
                 }
-                else if (addOrderDto.Address is UserAddressDto userAddressDto)
+                else if (addOrderDto.UserAddress is not null)
                 {
                     // Шукаємо існуючу UserAddress (без прив'язки до користувача для гостьових замовлень)
                     address = await context.UserAddresses.FirstOrDefaultAsync(a =>
-                        a.Country == userAddressDto.Country &&
-                        a.City == userAddressDto.City &&
-                        a.Region == userAddressDto.Region &&
-                        a.Street == userAddressDto.Street &&
-                        a.HomeNumber == userAddressDto.HomeNumber &&
-                        a.PostalCode == userAddressDto.PostalCode &&
+                        a.Country == addOrderDto.UserAddress.Country &&
+                        a.City == addOrderDto.UserAddress.City &&
+                        a.Region == addOrderDto.UserAddress.Region &&
+                        a.Street == addOrderDto.UserAddress.Street &&
+                        a.HomeNumber == addOrderDto.UserAddress.HomeNumber &&
+                        a.PostalCode == addOrderDto.UserAddress.PostalCode &&
                         a.UserId == null); // Пошук серед адрес без користувача
 
                     if (address == null)
@@ -169,14 +169,13 @@ namespace MinM_API.Services.Implementations
                         var newUserAddress = new UserAddress
                         {
                             Id = Guid.NewGuid().ToString(),
-                            Country = userAddressDto.Country,
-                            City = userAddressDto.City,
-                            Region = userAddressDto.Region,
-                            Street = userAddressDto.Street,
-                            HomeNumber = userAddressDto.HomeNumber,
-                            PostalCode = userAddressDto.PostalCode,
+                            Country = addOrderDto.UserAddress.Country,
+                            City = addOrderDto.UserAddress.City,
+                            Region = addOrderDto.UserAddress.Region,
+                            Street = addOrderDto.UserAddress.Street,
+                            HomeNumber = addOrderDto.UserAddress.HomeNumber,
+                            PostalCode = addOrderDto.UserAddress.PostalCode,
                             UserId = null, // Гостьове замовлення без користувача
-                            User = null
                         };
 
                         await context.UserAddresses.AddAsync(newUserAddress);
