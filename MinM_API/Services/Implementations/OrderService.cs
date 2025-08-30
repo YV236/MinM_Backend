@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MinM_API.Data;
 using MinM_API.Dtos;
+using MinM_API.Dtos.Address;
 using MinM_API.Dtos.Order;
 using MinM_API.Extension;
 using MinM_API.Mappers;
@@ -23,23 +24,69 @@ namespace MinM_API.Services.Implementations
 
             try
             {
-                var address = await context.Address.FirstOrDefaultAsync(a => a.Street == addOrderDto.Address.Street &&
-                a.HomeNumber == addOrderDto.Address.HomeNumber && a.City == addOrderDto.Address.City && a.Region == addOrderDto.Address.Region &&
-                a.PostalCode == addOrderDto.Address.PostalCode && a.Country == addOrderDto.Address.Country);
+                Models.Address address = null;
 
-                if (address == null)
+                // Визначаємо тип адреси на основі DTO
+                if (addOrderDto.PostAddress is not null)
                 {
-                    address = new Models.Address
+                    // Шукаємо існуючу PostAddress
+                    address = await context.PostAddresses.FirstOrDefaultAsync(a =>
+                        a.Country == addOrderDto.PostAddress.Country &&
+                        a.City == addOrderDto.PostAddress.City &&
+                        a.Region == addOrderDto.PostAddress.Region &&
+                        a.PostDepartment == addOrderDto.PostAddress.PostDepartment);
+
+                    if (address == null)
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        UserId = getUser.Id,
-                        Street = addOrderDto.Address.Street,
-                        HomeNumber = addOrderDto.Address.HomeNumber,
-                        City = addOrderDto.Address.City,
-                        Region = addOrderDto.Address.Region,
-                        PostalCode = addOrderDto.Address.PostalCode,
-                        Country = addOrderDto.Address.Country
-                    };
+                        // Створюємо нову PostAddress
+                        var newPostAddress = new PostAddress
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Country = addOrderDto.PostAddress.Country,
+                            City = addOrderDto.PostAddress.City,
+                            Region = addOrderDto.PostAddress.Region,
+                            PostDepartment = addOrderDto.PostAddress.PostDepartment
+                        };
+
+                        await context.PostAddresses.AddAsync(newPostAddress);
+                        address = newPostAddress;
+                    }
+                }
+                else if (addOrderDto.UserAddress is not null)
+                {
+                    // Шукаємо існуючу UserAddress для цього користувача
+                    address = await context.UserAddresses.FirstOrDefaultAsync(a =>
+                        a.Country == addOrderDto.UserAddress.Country &&
+                        a.City == addOrderDto.UserAddress.City &&
+                        a.Region == addOrderDto.UserAddress.Region &&
+                        a.Street == addOrderDto.UserAddress.Street &&
+                        a.HomeNumber == addOrderDto.UserAddress.HomeNumber &&
+                        a.PostalCode == addOrderDto.UserAddress.PostalCode &&
+                        a.UserId == getUser.Id);
+
+                    if (address == null)
+                    {
+                        // Створюємо нову UserAddress
+                        var newUserAddress = new UserAddress
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Country = addOrderDto.UserAddress.Country,
+                            City = addOrderDto.UserAddress.City,
+                            Region = addOrderDto.UserAddress.Region,
+                            Street = addOrderDto.UserAddress.Street,
+                            HomeNumber = addOrderDto.UserAddress.HomeNumber,
+                            PostalCode = addOrderDto.UserAddress.PostalCode,
+                            UserId = getUser.Id,
+                            User = getUser
+                        };
+
+                        await context.UserAddresses.AddAsync(newUserAddress);
+                        address = newUserAddress;
+                    }
+                }
+                else
+                {
+                    return ResponseFactory.Error<long>(0, "Invalid address type");
                 }
 
                 var order = new Order
@@ -48,6 +95,7 @@ namespace MinM_API.Services.Implementations
                     OrderDate = DateTime.UtcNow,
                     UserId = getUser.Id,
                     User = getUser,
+                    AddressId = address.Id, // Встановлюємо ID адреси
                     Address = address,
                     OrderItems = await CreateOrderItems(addOrderDto.OrderItems),
                     Status = Status.Created,
@@ -57,7 +105,7 @@ namespace MinM_API.Services.Implementations
                     RecipientFirstName = addOrderDto.RecipientFirstName,
                     RecipientLastName = addOrderDto.RecipientLastName,
                     RecipientEmail = addOrderDto.RecipientEmail,
-                    RecipientPhone = addOrderDto.RecipientEmail,
+                    RecipientPhone = addOrderDto.RecipientPhone // Виправив помилку: було RecipientEmail
                 };
 
                 await context.Orders.AddAsync(order);
@@ -75,30 +123,72 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
-                var address = await context.Address.FirstOrDefaultAsync(a =>
-                    a.Street == addOrderDto.Address.Street &&
-                    a.HomeNumber == addOrderDto.Address.HomeNumber &&
-                    a.City == addOrderDto.Address.City &&
-                    a.Region == addOrderDto.Address.Region &&
-                    a.PostalCode == addOrderDto.Address.PostalCode &&
-                    a.Country == addOrderDto.Address.Country);
+                Address address = null;
 
-                if (address == null)
+                // Пошук існуючої адреси серед всіх типів адрес
+                if (addOrderDto.PostAddress is not null)
                 {
-                    address = new Models.Address
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Street = addOrderDto.Address.Street,
-                        HomeNumber = addOrderDto.Address.HomeNumber,
-                        City = addOrderDto.Address.City,
-                        Region = addOrderDto.Address.Region,
-                        PostalCode = addOrderDto.Address.PostalCode,
-                        Country = addOrderDto.Address.Country
-                    };
+                    // Шукаємо існуючу PostAddress
+                    address = await context.PostAddresses.FirstOrDefaultAsync(a =>
+                        a.Country == addOrderDto.PostAddress.Country &&
+                        a.City == addOrderDto.PostAddress.City &&
+                        a.Region == addOrderDto.PostAddress.Region &&
+                        a.PostDepartment == addOrderDto.PostAddress.PostDepartment);
 
-                    await context.Address.AddAsync(address);
-                    await context.SaveChangesAsync();
+                    if (address == null)
+                    {
+                        // Створюємо нову PostAddress
+                        var newPostAddress = new PostAddress
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Country = addOrderDto.PostAddress.Country,
+                            City = addOrderDto.PostAddress.City,
+                            Region = addOrderDto.PostAddress.Region,
+                            PostDepartment = addOrderDto.PostAddress.PostDepartment
+                        };
+
+                        await context.PostAddresses.AddAsync(newPostAddress);
+                        address = newPostAddress;
+                    }
                 }
+                else if (addOrderDto.UserAddress is not null)
+                {
+                    // Шукаємо існуючу UserAddress (без прив'язки до користувача для гостьових замовлень)
+                    address = await context.UserAddresses.FirstOrDefaultAsync(a =>
+                        a.Country == addOrderDto.UserAddress.Country &&
+                        a.City == addOrderDto.UserAddress.City &&
+                        a.Region == addOrderDto.UserAddress.Region &&
+                        a.Street == addOrderDto.UserAddress.Street &&
+                        a.HomeNumber == addOrderDto.UserAddress.HomeNumber &&
+                        a.PostalCode == addOrderDto.UserAddress.PostalCode &&
+                        a.UserId == null); // Пошук серед адрес без користувача
+
+                    if (address == null)
+                    {
+                        // Створюємо нову UserAddress без прив'язки до користувача
+                        var newUserAddress = new UserAddress
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Country = addOrderDto.UserAddress.Country,
+                            City = addOrderDto.UserAddress.City,
+                            Region = addOrderDto.UserAddress.Region,
+                            Street = addOrderDto.UserAddress.Street,
+                            HomeNumber = addOrderDto.UserAddress.HomeNumber,
+                            PostalCode = addOrderDto.UserAddress.PostalCode,
+                            UserId = null, // Гостьове замовлення без користувача
+                        };
+
+                        await context.UserAddresses.AddAsync(newUserAddress);
+                        address = newUserAddress;
+                    }
+                }
+                else
+                {
+                    return ResponseFactory.Error<long>(0, "Invalid address type");
+                }
+
+                // Зберігаємо адресу, якщо вона нова
+                await context.SaveChangesAsync();
 
                 var orderItems = await CreateOrderItems(addOrderDto.OrderItems);
 
@@ -113,7 +203,7 @@ namespace MinM_API.Services.Implementations
                     PaymentMethod = addOrderDto.PaymentMethod ?? "Card",
                     DeliveryMethod = addOrderDto.DeliveryMethod ?? "NovaPost",
                     OrderNumber = GenerateOrderNumber(),
-                    UserId = null,
+                    UserId = null, // Гостьове замовлення
                     User = null,
                     RecipientFirstName = addOrderDto.RecipientFirstName ?? "",
                     RecipientLastName = addOrderDto.RecipientLastName ?? "",
@@ -255,7 +345,13 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
-                var orders = await context.Orders.ToListAsync();
+                // Завантажуємо замовлення з усіма потрібними навігаційними властивостями
+                var orders = await context.Orders
+                    .Include(o => o.Address)
+                    .Include(o => o.OrderItems)
+                    .Include(o => o.User)
+                    .ToListAsync();
+
                 if (orders.Count == 0)
                 {
                     return ResponseFactory.Success(new List<OrderDto>(), "No orders found");
@@ -263,35 +359,67 @@ namespace MinM_API.Services.Implementations
 
                 var getOrders = new List<OrderDto>();
 
-                foreach(var order in orders)
+                foreach (var order in orders)
                 {
-                    getOrders.Add(new OrderDto
+                    // Мапінг OrderItems
+                    var orderItemsDto = await MapAsync(order.OrderItems);
+
+                    // Мапінг Address з урахуванням різних типів
+                    AddressDto addressDto = null;
+                    if (order.Address != null)
+                    {
+                        switch (order.Address)
+                        {
+                            case PostAddress postAddress:
+                                addressDto = new PostAddressDto
+                                {
+                                    Country = postAddress.Country,
+                                    City = postAddress.City,
+                                    Region = postAddress.Region,
+                                    PostDepartment = postAddress.PostDepartment
+                                };
+                                break;
+
+                            case UserAddress userAddress:
+                                addressDto = new UserAddressDto
+                                {
+                                    Country = userAddress.Country,
+                                    City = userAddress.City,
+                                    Region = userAddress.Region,
+                                    Street = userAddress.Street,
+                                    HomeNumber = userAddress.HomeNumber,
+                                    PostalCode = userAddress.PostalCode
+                                };
+                                break;
+                        }
+                    }
+
+                    var orderDto = new OrderDto
                     {
                         Id = order.Id,
+                        OrderNumber = order.OrderNumber,
+                        OrderDate = order.OrderDate,
                         AddressId = order.AddressId,
-                        Address = new Dtos.Address
-                        {
-                            Street = order.Address.Street ?? "",
-                            HomeNumber = order.Address.HomeNumber ?? "",
-                            City = order.Address.City ?? "",
-                            Region = order.Address.Region ?? "",
-                            PostalCode = order.Address.PostalCode ?? "",
-                            Country = order.Address.Country ?? "",
-                        },
-                        OrderItems = await MapAsync(order.OrderItems),
+                        Address = addressDto,
+                        OrderItems = orderItemsDto,
+                        Status = order.Status.ToString(),
                         PaymentMethod = order.PaymentMethod,
                         DeliveryMethod = order.DeliveryMethod,
                         RecipientFirstName = order.RecipientFirstName,
                         RecipientLastName = order.RecipientLastName,
                         RecipientEmail = order.RecipientEmail,
                         RecipientPhone = order.RecipientPhone,
-                    });
+                        UserName = order.User?.UserName
+                    };
+
+                    getOrders.Add(orderDto);
                 }
 
                 return ResponseFactory.Success(getOrders, "Success");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in GetAllOrders: {ex.Message}");
                 return ResponseFactory.Error<List<OrderDto>>(null, "Internal error");
             }
         }
@@ -306,7 +434,14 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error<List<OrderDto>>(null, "No users found");
                 }
 
-                var orders = await context.Orders.Where(o => o.UserId == getUser.Id).ToListAsync();
+                // Завантажуємо замовлення користувача з усіма потрібними навігаційними властивостями
+                var orders = await context.Orders
+                    .Where(o => o.UserId == getUser.Id)
+                    .Include(o => o.Address)
+                    .Include(o => o.OrderItems)
+                    .OrderByDescending(o => o.OrderDate) // Сортуємо за датою, найновіші спочатку
+                    .ToListAsync();
+
                 if (orders.Count == 0)
                 {
                     return ResponseFactory.Success(new List<OrderDto>(), "No orders found");
@@ -316,33 +451,64 @@ namespace MinM_API.Services.Implementations
 
                 foreach (var order in orders)
                 {
-                    getOrders.Add(new OrderDto
+                    // Мапінг OrderItems
+                    var orderItemsDto = await MapAsync(order.OrderItems);
+
+                    // Мапінг Address з урахуванням різних типів
+                    AddressDto addressDto = null;
+                    if (order.Address != null)
+                    {
+                        switch (order.Address)
+                        {
+                            case PostAddress postAddress:
+                                addressDto = new PostAddressDto
+                                {
+                                    Country = postAddress.Country,
+                                    City = postAddress.City,
+                                    Region = postAddress.Region,
+                                    PostDepartment = postAddress.PostDepartment
+                                };
+                                break;
+
+                            case UserAddress userAddress:
+                                addressDto = new UserAddressDto
+                                {
+                                    Country = userAddress.Country,
+                                    City = userAddress.City,
+                                    Region = userAddress.Region,
+                                    Street = userAddress.Street,
+                                    HomeNumber = userAddress.HomeNumber,
+                                    PostalCode = userAddress.PostalCode
+                                };
+                                break;
+                        }
+                    }
+
+                    var orderDto = new OrderDto
                     {
                         Id = order.Id,
+                        OrderNumber = order.OrderNumber,
+                        OrderDate = order.OrderDate,
                         AddressId = order.AddressId,
-                        Address = new Dtos.Address
-                        {
-                            Street = order.Address.Street ?? "",
-                            HomeNumber = order.Address.HomeNumber ?? "",
-                            City = order.Address.City ?? "",
-                            Region = order.Address.Region ?? "",
-                            PostalCode = order.Address.PostalCode ?? "",
-                            Country = order.Address.Country ?? "",
-                        },
-                        OrderItems = await MapAsync(order.OrderItems),
+                        Address = addressDto,
+                        OrderItems = orderItemsDto,
+                        Status = order.Status.ToString(),
                         PaymentMethod = order.PaymentMethod,
                         DeliveryMethod = order.DeliveryMethod,
                         RecipientFirstName = order.RecipientFirstName,
                         RecipientLastName = order.RecipientLastName,
                         RecipientEmail = order.RecipientEmail,
                         RecipientPhone = order.RecipientPhone,
-                    });
+                    };
+
+                    getOrders.Add(orderDto);
                 }
 
                 return ResponseFactory.Success(getOrders, "Success");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in GetAllUserOrders: {ex.Message}");
                 return ResponseFactory.Error<List<OrderDto>>(null, "Internal error");
             }
         }
@@ -351,38 +517,74 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
-                var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+                // Завантажуємо замовлення з усіма потрібними навігаційними властивостями
+                var order = await context.Orders
+                    .Include(o => o.Address)
+                    .Include(o => o.OrderItems)
+                    .Include(o => o.User)
+                    .FirstOrDefaultAsync(o => o.Id == orderId);
+
                 if (order is null)
                 {
-                    return ResponseFactory.Success(new OrderDto(), "No orders found");
+                    return ResponseFactory.Error<OrderDto>(null, "No orders found");
                 }
-                    
+
+                // Мапінг OrderItems
+                var orderItemsDto = await MapAsync(order.OrderItems);
+
+                // Мапінг Address з урахуванням різних типів
+                AddressDto addressDto = null;
+                if (order.Address != null)
+                {
+                    switch (order.Address)
+                    {
+                        case PostAddress postAddress:
+                            addressDto = new PostAddressDto
+                            {
+                                Country = postAddress.Country,
+                                City = postAddress.City,
+                                Region = postAddress.Region,
+                                PostDepartment = postAddress.PostDepartment
+                            };
+                            break;
+
+                        case UserAddress userAddress:
+                            addressDto = new UserAddressDto
+                            {
+                                Country = userAddress.Country,
+                                City = userAddress.City,
+                                Region = userAddress.Region,
+                                Street = userAddress.Street,
+                                HomeNumber = userAddress.HomeNumber,
+                                PostalCode = userAddress.PostalCode
+                            };
+                            break;
+                    }
+                }
+
                 var getOrder = new OrderDto
                 {
                     Id = order.Id,
+                    OrderNumber = order.OrderNumber,
+                    OrderDate = order.OrderDate,
                     AddressId = order.AddressId,
-                    Address = new Dtos.Address
-                    {
-                        Street = order.Address.Street ?? "",
-                        HomeNumber = order.Address.HomeNumber ?? "",
-                        City = order.Address.City ?? "",
-                        Region = order.Address.Region ?? "",
-                        PostalCode = order.Address.PostalCode ?? "",
-                        Country = order.Address.Country ?? "",
-                    },
-                    OrderItems = await MapAsync(order.OrderItems),
+                    Address = addressDto,
+                    OrderItems = orderItemsDto,
+                    Status = order.Status.ToString(),
                     PaymentMethod = order.PaymentMethod,
                     DeliveryMethod = order.DeliveryMethod,
                     RecipientFirstName = order.RecipientFirstName,
                     RecipientLastName = order.RecipientLastName,
                     RecipientEmail = order.RecipientEmail,
                     RecipientPhone = order.RecipientPhone,
+                    UserName = order.User?.UserName
                 };
 
                 return ResponseFactory.Success(getOrder, "Success");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in GetUserOrder: {ex.Message}");
                 return ResponseFactory.Error<OrderDto>(null, "Internal error");
             }
         }

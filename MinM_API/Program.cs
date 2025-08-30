@@ -13,6 +13,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MinM_API.Services.BackgroundServices;
+using MinM_API.Dtos.Address;
+using System.Text.Json.Serialization.Metadata;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -105,6 +109,35 @@ builder.Services.AddSingleton<CategoryMapper>();
 builder.Services.AddSingleton<DiscountMapper>();
 builder.Services.AddSingleton<CartMapper>();
 builder.Services.AddSingleton<OrderItemMapper>();
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
+    options.SerializerOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver
+    {
+        Modifiers = { AddAddressDtoModifier }
+    };
+});
+
+static void AddAddressDtoModifier(JsonTypeInfo jsonTypeInfo)
+{
+    if (jsonTypeInfo.Type == typeof(AddressDto))
+    {
+        jsonTypeInfo.PolymorphismOptions = new JsonPolymorphismOptions
+        {
+            TypeDiscriminatorPropertyName = "$type",
+            IgnoreUnrecognizedTypeDiscriminators = true,
+            UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization,
+            DerivedTypes =
+            {
+                new JsonDerivedType(typeof(PostAddressDto), "post"),
+                new JsonDerivedType(typeof(UserAddressDto), "user")
+            }
+        };
+    }
+}
 
 builder.Services.AddCors(options =>
 {

@@ -159,7 +159,7 @@ namespace MinM_API.Services.Implementations
 
                 if (getUser.Address is null)
                 {
-                    getUser.Address = new AddressModel() { Id = Guid.NewGuid().ToString() };
+                    getUser.Address = new UserAddress() { Id = Guid.NewGuid().ToString() };
                     getUser.AddressId = getUser.Address.Id;
                 }
 

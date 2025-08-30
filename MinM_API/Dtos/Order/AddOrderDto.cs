@@ -1,8 +1,11 @@
-﻿namespace MinM_API.Dtos.Order
+﻿using MinM_API.Dtos.Address;
+
+namespace MinM_API.Dtos.Order
 {
     public class AddOrderDto
     {
-        public Address Address { get; set; }
+        public UserAddressDto? UserAddress { get; set; }
+        public PostAddressDto? PostAddress { get; set; }
         public List<OrderItemDto> OrderItems { get; set; }
         public string PaymentMethod { get; set; } = string.Empty;
         public string DeliveryMethod { get; set; } = string.Empty;
