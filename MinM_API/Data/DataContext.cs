@@ -10,7 +10,11 @@ namespace MinM_API.Data
     {
         public DbSet<User> Users { get; set; }
 
-        public DbSet<Address> Address { get; set; }
+        public DbSet<Address> Addresses { get; set; }
+
+        public DbSet<PostAddress> PostAddresses { get; set; }
+
+        public DbSet<UserAddress> UserAddresses { get; set; }
 
         public DbSet<Category> Categories { get; set; }
 
@@ -52,11 +56,16 @@ namespace MinM_API.Data
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<User>()
-                .HasOne(u => u.Address)
-                .WithOne(a => a.User)
-                .HasForeignKey<Address>(a => a.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<User>(entity =>
+            {
+                entity.HasOne(u => u.Address)
+                    .WithOne(a => a.User)
+                    .HasForeignKey<UserAddress>(a => a.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<PostAddress>().ToTable("PostAddresses");
+            builder.Entity<UserAddress>().ToTable("UserAddresses");
 
             builder.Entity<CartItem>()
                .HasOne(c => c.User)
