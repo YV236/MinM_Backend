@@ -1,4 +1,5 @@
-﻿using MinM_API.Dtos.User;
+﻿using MinM_API.Dtos.Address;
+using MinM_API.Dtos.User;
 using MinM_API.Models;
 using Riok.Mapperly.Abstractions;
 
@@ -21,8 +22,6 @@ namespace MinM_API.Mappers
         public partial void UpdateUserDtoToUserModel(UpdateUserDto userDto, User user);
 
         [MapperIgnoreSource(nameof(Address.Id))]
-        [MapperIgnoreSource(nameof(Address.UserId))]
-        [MapperIgnoreSource(nameof(Address.User))]
-        public partial void UpdateAddressDtoToAddress(AddressDto addressDto, Address address);
+        public partial void UpdateAddressDtoToAddress(UserAddressDto addressDto, Address address);
     }
 }
