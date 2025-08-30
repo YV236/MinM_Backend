@@ -58,14 +58,27 @@ namespace MinM_API.Data
 
             builder.Entity<User>(entity =>
             {
-                entity.HasOne(u => u.Address)
-                    .WithOne(a => a.User)
-                    .HasForeignKey<UserAddress>(a => a.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne<UserAddress>() // Без навігаційної властивості
+                    .WithOne(ua => ua.User)
+                    .HasForeignKey<UserAddress>(ua => ua.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired(false);
             });
 
             builder.Entity<PostAddress>().ToTable("PostAddresses");
             builder.Entity<UserAddress>().ToTable("UserAddresses");
+
+            builder.Entity<UserAddress>(entity =>
+            {
+                entity.Property(ua => ua.UserId)
+                    .IsRequired(false);
+
+                entity.HasOne(ua => ua.User)
+                    .WithMany()
+                    .HasForeignKey(ua => ua.UserId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
+            });
 
             builder.Entity<CartItem>()
                .HasOne(c => c.User)
@@ -119,11 +132,14 @@ namespace MinM_API.Data
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.Entity<Order>()
-                .HasOne(o => o.Address)
-                .WithMany()
-                .HasForeignKey(o => o.AddressId)
-                .OnDelete(DeleteBehavior.SetNull);
+            builder.Entity<Order>(entity =>
+            {
+                entity.HasOne(o => o.Address)
+                    .WithMany()
+                    .HasForeignKey(o => o.AddressId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
+            });
 
             builder.Entity<Order>()
                 .HasMany(o => o.OrderItems)

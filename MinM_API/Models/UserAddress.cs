@@ -2,10 +2,10 @@
 {
     public class UserAddress : Address
     {
-        public string UserId { get; set; } = "guest";
+        public string? UserId { get; set; }
         public virtual User? User { get; set; }
-        public string Street { get; set; } = string.Empty;
-        public string HomeNumber { get; set; } = string.Empty;
+        public string? Street { get; set; } = string.Empty;
+        public string? HomeNumber { get; set; } = string.Empty;
         public string? PostalCode { get; set; }
     }
 }
