@@ -9,6 +9,7 @@ namespace MinM_API.Dtos.Order
         public List<OrderItemDto> OrderItems { get; set; }
         public string PaymentMethod { get; set; } = string.Empty;
         public string DeliveryMethod { get; set; } = string.Empty;
+        public string AdditionalInfo { get; set; } = string.Empty;
 
         public string RecipientFirstName { get; set; } = string.Empty;
         public string RecipientLastName { get; set; }
