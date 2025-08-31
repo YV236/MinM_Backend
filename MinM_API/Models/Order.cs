@@ -13,6 +13,7 @@
         public string PaymentMethod { get; set; } = "Card";
         public string DeliveryMethod { get; set; } = "NovaPost";
         public long OrderNumber { get; set; }
+        public string? AdditionalInfo { get; set; } = string.Empty;
 
         public string RecipientFirstName { get; set; }
         public string RecipientLastName { get; set; }
