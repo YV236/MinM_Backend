@@ -55,6 +55,15 @@ namespace MinM_API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+        [HttpPut]
+        [Route("fail/{orderId}")]
+        public async Task<ActionResult<ServiceResponse<long>>> FailOrder([FromRoute] string orderId)
+        {
+            var response = await orderService.FailOrder(orderId);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
 
         [HttpPut]
         [Route("change/{orderId}")]

@@ -15,5 +15,6 @@ namespace MinM_API.Services.Interfaces
         Task<ServiceResponse<List<OrderDto>>> GetAllOrders();
         Task<ServiceResponse<List<OrderDto>>> GetAllUserOrders(ClaimsPrincipal user);
         Task<ServiceResponse<OrderDto>> GetUserOrder(string orderId);
+        Task<ServiceResponse<long>> FailOrder(string orderId);
     }
 }

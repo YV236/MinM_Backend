@@ -258,6 +258,33 @@ namespace MinM_API.Services.Implementations
             }
         }
 
+        public async Task<ServiceResponse<long>> FailOrder(string orderId)
+        {
+            try
+            {
+                var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+                if (order == null)
+                {
+                    return ResponseFactory.Error<long>(0, "No orders found");
+                }
+
+                if (order.Status != Status.Created)
+                {
+                    return ResponseFactory.Error<long>(0, "Internal error");
+                }
+
+                order.Status = Status.Failed;
+
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success<long>(1, "Something went wrong. Order was failed");
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Error<long>(0, "Internal error");
+            }
+        }
+
         public async Task<ServiceResponse<long>> SetOrderAsPaid(string orderId)
         {
             using var transaction = await context.Database.BeginTransactionAsync();

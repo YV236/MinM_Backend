@@ -12,5 +12,6 @@ namespace MinM_API.Models
         Delivering = 4,
         Received = 5,
         Returned = 6,
+        Failed = 7
     }
 }
