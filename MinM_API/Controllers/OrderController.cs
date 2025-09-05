@@ -47,19 +47,19 @@ namespace MinM_API.Controllers
 
 
         [HttpPut]
-        [Route("paid/{orderId}")]
-        public async Task<ActionResult<ServiceResponse<int>>> SetOrderAsPaid([FromRoute] string orderId)
+        [Route("paid/{orderNumber}")]
+        public async Task<ActionResult<ServiceResponse<int>>> SetOrderAsPaid([FromRoute] string orderNumber)
         {
-            var response = await orderService.SetOrderAsPaid(orderId);
+            var response = await orderService.SetOrderAsPaid(orderNumber);
 
             return StatusCode((int)response.StatusCode, response);
         }
 
         [HttpPut]
-        [Route("fail/{orderId}")]
-        public async Task<ActionResult<ServiceResponse<long>>> FailOrder([FromRoute] string orderId)
+        [Route("fail/{orderNumber}")]
+        public async Task<ActionResult<ServiceResponse<long>>> FailOrder([FromRoute] string orderNumber)
         {
-            var response = await orderService.FailOrder(orderId);
+            var response = await orderService.FailOrder(orderNumber);
 
             return StatusCode((int)response.StatusCode, response);
         }

@@ -7,7 +7,7 @@ namespace MinM_API.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task<ServiceResponse<long>> SetOrderAsPaid(string orderId);
+        Task<ServiceResponse<long>> SetOrderAsPaid(string orderNumber);
         Task<ServiceResponse<long>> CancelOrder(ClaimsPrincipal user, string orderId);
         Task<ServiceResponse<string>> CreateOrder(AddOrderDto addOrderDto, ClaimsPrincipal user);
         Task<ServiceResponse<string>> CreateUnauthorizedOrder(AddOrderDto addOrderDto);
@@ -15,6 +15,6 @@ namespace MinM_API.Services.Interfaces
         Task<ServiceResponse<List<OrderDto>>> GetAllOrders();
         Task<ServiceResponse<List<OrderDto>>> GetAllUserOrders(ClaimsPrincipal user);
         Task<ServiceResponse<OrderDto>> GetUserOrder(string orderId);
-        Task<ServiceResponse<long>> FailOrder(string orderId);
+        Task<ServiceResponse<long>> FailOrder(string orderNumber);
     }
 }

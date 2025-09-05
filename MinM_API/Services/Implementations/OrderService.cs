@@ -101,7 +101,7 @@ namespace MinM_API.Services.Implementations
                     Status = Status.Created,
                     PaymentMethod = addOrderDto.PaymentMethod,
                     DeliveryMethod = addOrderDto.DeliveryMethod,
-                    OrderNumber = long.Parse(OrderNumberGenerator.GenerateOrderNumber()),
+                    OrderNumber = OrderNumberGenerator.GenerateOrderNumber(),
                     AdditionalInfo = addOrderDto.AdditionalInfo,
                     RecipientFirstName = addOrderDto.RecipientFirstName,
                     RecipientLastName = addOrderDto.RecipientLastName,
@@ -203,7 +203,7 @@ namespace MinM_API.Services.Implementations
                     Status = Status.Created,
                     PaymentMethod = addOrderDto.PaymentMethod ?? "Card",
                     DeliveryMethod = addOrderDto.DeliveryMethod ?? "NovaPost",
-                    OrderNumber = long.Parse(OrderNumberGenerator.GenerateOrderNumber()),
+                    OrderNumber = OrderNumberGenerator.GenerateOrderNumber(),
                     AdditionalInfo = addOrderDto.AdditionalInfo,
                     UserId = null, // Гостьове замовлення
                     User = null,
@@ -258,11 +258,11 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task<ServiceResponse<long>> FailOrder(string orderId)
+        public async Task<ServiceResponse<long>> FailOrder(string orderNumber)
         {
             try
             {
-                var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+                var order = await context.Orders.FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
                 if (order == null)
                 {
                     return ResponseFactory.Error<long>(0, "No orders found");
@@ -285,7 +285,7 @@ namespace MinM_API.Services.Implementations
             }
         }
 
-        public async Task<ServiceResponse<long>> SetOrderAsPaid(string orderId)
+        public async Task<ServiceResponse<long>> SetOrderAsPaid(string orderNumber)
         {
             using var transaction = await context.Database.BeginTransactionAsync();
             try
@@ -293,7 +293,7 @@ namespace MinM_API.Services.Implementations
                 var order = await context.Orders
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Item)
-                    .FirstOrDefaultAsync(o => o.Id == orderId);
+                    .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
 
                 if (order == null)
                 {
