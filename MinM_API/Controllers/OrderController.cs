@@ -18,7 +18,7 @@ namespace MinM_API.Controllers
         [HttpPost]
         [Route("create-authenticated")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]
-        public async Task<ActionResult<ServiceResponse<int>>> CreateOrder(AddOrderDto addOrderDto)
+        public async Task<ActionResult<ServiceResponse<string>>> CreateOrder(AddOrderDto addOrderDto)
         {
 
             var response = await orderService.CreateOrder(addOrderDto, User);
@@ -28,7 +28,7 @@ namespace MinM_API.Controllers
 
         [HttpPost]
         [Route("create-guest")]
-        public async Task<ActionResult<ServiceResponse<int>>> CreateUnauthorizedOrder(AddOrderDto addOrderDto)
+        public async Task<ActionResult<ServiceResponse<string>>> CreateUnauthorizedOrder(AddOrderDto addOrderDto)
         {
             var response = await orderService.CreateUnauthorizedOrder(addOrderDto);
 

@@ -14,12 +14,12 @@ namespace MinM_API.Services.Implementations
 {
     public class OrderService(DataContext context, IUserRepository userRepository, OrderItemMapper mapper) : IOrderService
     {
-        public async Task<ServiceResponse<long>> CreateOrder(AddOrderDto addOrderDto, ClaimsPrincipal user)
+        public async Task<ServiceResponse<string>> CreateOrder(AddOrderDto addOrderDto, ClaimsPrincipal user)
         {
             var getUser = await userRepository.FindUser(user, context);
             if (getUser == null)
             {
-                return ResponseFactory.Error<long>(0, "No users found");
+                return ResponseFactory.Error<string>("Fail", "No users found");
             }
 
             try
@@ -86,7 +86,7 @@ namespace MinM_API.Services.Implementations
                 }
                 else
                 {
-                    return ResponseFactory.Error<long>(0, "Invalid address type");
+                    return ResponseFactory.Error<string>("Fail", "Invalid address type");
                 }
 
                 var order = new Order
@@ -101,7 +101,7 @@ namespace MinM_API.Services.Implementations
                     Status = Status.Created,
                     PaymentMethod = addOrderDto.PaymentMethod,
                     DeliveryMethod = addOrderDto.DeliveryMethod,
-                    OrderNumber = GenerateOrderNumber(),
+                    OrderNumber = long.Parse(OrderNumberGenerator.GenerateOrderNumber()),
                     AdditionalInfo = addOrderDto.AdditionalInfo,
                     RecipientFirstName = addOrderDto.RecipientFirstName,
                     RecipientLastName = addOrderDto.RecipientLastName,
@@ -112,15 +112,15 @@ namespace MinM_API.Services.Implementations
                 await context.Orders.AddAsync(order);
                 await context.SaveChangesAsync();
 
-                return ResponseFactory.Success(order.OrderNumber);
+                return ResponseFactory.Success(order.OrderNumber.ToString());
             }
             catch (Exception ex)
             {
-                return ResponseFactory.Error<long>(0, "Internal error");
+                return ResponseFactory.Error("Fail", "Internal error");
             }
         }
 
-        public async Task<ServiceResponse<long>> CreateUnauthorizedOrder(AddOrderDto addOrderDto)
+        public async Task<ServiceResponse<string>> CreateUnauthorizedOrder(AddOrderDto addOrderDto)
         {
             try
             {
@@ -185,7 +185,7 @@ namespace MinM_API.Services.Implementations
                 }
                 else
                 {
-                    return ResponseFactory.Error<long>(0, "Invalid address type");
+                    return ResponseFactory.Error("Fail", "Invalid address type");
                 }
 
                 // Зберігаємо адресу, якщо вона нова
@@ -203,7 +203,7 @@ namespace MinM_API.Services.Implementations
                     Status = Status.Created,
                     PaymentMethod = addOrderDto.PaymentMethod ?? "Card",
                     DeliveryMethod = addOrderDto.DeliveryMethod ?? "NovaPost",
-                    OrderNumber = GenerateOrderNumber(),
+                    OrderNumber = long.Parse(OrderNumberGenerator.GenerateOrderNumber()),
                     AdditionalInfo = addOrderDto.AdditionalInfo,
                     UserId = null, // Гостьове замовлення
                     User = null,
@@ -216,12 +216,12 @@ namespace MinM_API.Services.Implementations
                 await context.Orders.AddAsync(order);
                 await context.SaveChangesAsync();
 
-                return ResponseFactory.Success(order.OrderNumber, "Order created successfully");
+                return ResponseFactory.Success(order.OrderNumber.ToString(), "Order created successfully");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in CreateUnauthorizedOrder: {ex.Message}");
-                return ResponseFactory.Error<long>(0, "Internal error");
+                return ResponseFactory.Error("Fail", "Internal error");
             }
         }
 
@@ -693,16 +693,6 @@ namespace MinM_API.Services.Implementations
                 result.Add(itemToAdd);
             }
             return result;
-        }
-
-        private static long GenerateOrderNumber()
-        {
-            var guid = Guid.NewGuid();
-            var bytes = guid.ToByteArray();
-
-            var result = BitConverter.ToInt64(bytes, 0);
-
-            return Math.Abs(result);
         }
     }
 }
