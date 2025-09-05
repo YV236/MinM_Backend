@@ -5,7 +5,7 @@ namespace MinM_API.Dtos.Order
     public class OrderDto
     {
         public string Id { get; set; }
-        public long OrderNumber { get; set; }
+        public string OrderNumber { get; set; }
         public DateTime OrderDate { get; set; }
         public string? AddressId { get; set; }
         public AddressDto Address { get; set; }

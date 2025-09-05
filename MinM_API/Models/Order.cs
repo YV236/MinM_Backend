@@ -1,5 +1,8 @@
-﻿namespace MinM_API.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace MinM_API.Models
 {
+    [Index(nameof(OrderNumber), IsUnique = true)]
     public class Order
     {
         public string Id { get; set; }
@@ -12,7 +15,7 @@
         public Status Status { get; set; }
         public string PaymentMethod { get; set; } = "Card";
         public string DeliveryMethod { get; set; } = "NovaPost";
-        public long OrderNumber { get; set; }
+        public required string OrderNumber { get; set; }
         public string? AdditionalInfo { get; set; } = string.Empty;
 
         public string RecipientFirstName { get; set; }
