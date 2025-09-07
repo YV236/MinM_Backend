@@ -22,6 +22,6 @@ namespace MinM_API.Mappers
         public partial void UpdateUserDtoToUserModel(UpdateUserDto userDto, User user);
 
         [MapperIgnoreSource(nameof(Address.Id))]
-        public partial void UpdateAddressDtoToAddress(UserAddressDto addressDto, Address address);
+        public partial void UpdateAddressDtoToAddress(UserAddressDto addressDto, UserAddress address);
     }
 }
