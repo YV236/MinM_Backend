@@ -41,6 +41,16 @@ namespace MinM_API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+        [HttpDelete]
+        [Route("DeleteMany")]
+        [Authorize(AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<int>>> DeleteProductFromCart(List<string> itemIds)
+        {
+            var response = await cartService.DeleteProductFromCart(User, itemIds);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
         [HttpGet]
         [Route("GetAllCartProducts")]
         [Authorize(AuthenticationSchemes = "MyTokenScheme")]

@@ -135,6 +135,35 @@ namespace MinM_API.Services.Implementations
             }
         }
 
+        public async Task<ServiceResponse<int>> DeleteProductFromCart(ClaimsPrincipal user, List<string> cartItemIds)
+        {
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                logger.LogInformation("Fail: Fetching error. There's no user with such id: {userId}", userId);
+                return ResponseFactory.Error(0, "There is no such user with such id");
+            }
+
+            var cartItems = await context.CartItems
+                .Include(c => c.Product)
+                .Include(c => c.ProductVariant)
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
+
+            if(cartItems.Count == 0)
+            {
+                logger.LogInformation("Fail: there is no products in users cart");
+                return ResponseFactory.Error(0, "There's now products in users cart", System.Net.HttpStatusCode.NotFound);
+            }
+
+            var cartItemsToRemove = cartItems.Where(ci => cartItemIds.Contains(ci.Id)).ToList();
+
+            context.CartItems.RemoveRange(cartItemsToRemove);
+            await context.SaveChangesAsync();
+
+            return ResponseFactory.Success(1, "Products from cart removed successfully");
+        }
+
         public async Task<ServiceResponse<List<GetCartItemDto>>> GetAllProductsFromCart(ClaimsPrincipal user)
         {
             try

@@ -11,6 +11,7 @@ namespace MinM_API.Services.Interfaces
         Task<ServiceResponse<List<GetCartItemDto>>> GetAllProductsFromCart(ClaimsPrincipal user);
         Task<ServiceResponse<int>> ActualizeUserCart(ClaimsPrincipal user, List<AddCartItemDto> productIds);
         Task<ServiceResponse<int>> DeleteProductFromCart(ClaimsPrincipal user, string cartItemId);
+        Task<ServiceResponse<int>> DeleteProductFromCart(ClaimsPrincipal user, List<string> cartItemId);
         Task<ServiceResponse<int>> UpdateCartItem(ClaimsPrincipal user, UpdateCartItemDto cartItemToUpdate);
     }
 }
