@@ -358,6 +358,16 @@ namespace MinM_API.Services.Implementations
                     }
                 }
 
+                if(status == Status.Paid)
+                {
+                    var result = await SetOrderAsPaid(order.OrderNumber);
+
+                    if (!result.IsSuccessful)
+                    {
+                        return result;
+                    }
+                }
+
                 order.Status = status;
 
                 await context.SaveChangesAsync();
