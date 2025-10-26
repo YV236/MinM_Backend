@@ -17,6 +17,8 @@ using MinM_API.Dtos.Address;
 using System.Text.Json.Serialization.Metadata;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +84,28 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.AddControllers();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+
+        if (string.IsNullOrEmpty(ipAddress))
+        {
+            ipAddress = "GLOBAL_FALLBACK_KEY";
+        }
+
+        return RateLimitPartition.GetFixedWindowLimiter(ipAddress, _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromSeconds(10)
+            });
+    });
+});
 
 builder.Services.AddHostedService<DiscountExpirationService>();
 builder.Services.AddHostedService<SeasonExpirationService>();
@@ -204,6 +228,8 @@ app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseCors("NextJsCorsPolicy");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
