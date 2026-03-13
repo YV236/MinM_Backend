@@ -7,7 +7,9 @@ namespace MinM_API.Dtos.Product
     {
         [FromForm] public string Id { get; set; } = string.Empty;
         [FromForm] public string Name { get; set; } = string.Empty;
+        [FromForm] public string? Brand { get; set; }
         [FromForm] public string Description { get; set; } = string.Empty;
+        [FromForm] public string? ExtraInfo { get; set; }
 
         [FromForm(Name = "ProductVariantsJson")] public string ProductVariantsJson { get; set; } = string.Empty;
 

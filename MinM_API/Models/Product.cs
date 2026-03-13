@@ -12,7 +12,9 @@ namespace MinM_API.Models
         public string Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
+        public string? Brand {  get; set; }
         public string Description { get; set; } = string.Empty;
+        public string? ExtraInfo { get; set; }
         public DateTime DateOfCreation { get; set; }
         public bool IsNew { get; set; }
         public virtual List<ProductVariant> ProductVariants { get; set; } = [];
