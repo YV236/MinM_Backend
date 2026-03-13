@@ -38,6 +38,7 @@ namespace MinM_API.Services.Implementations
                     {
                         SequenceNumber = bannerImage.SequenceNumber,
                         ImageURL = bannerImage.ImageURL,
+                        PhoneImageURL = bannerImage.PhoneImageURL,
                         PageURL = bannerImage.PageURL,
                         ButtonText = bannerImage.ButtonText,
                         Text = bannerImage.Text,
@@ -75,6 +76,7 @@ namespace MinM_API.Services.Implementations
                 }
 
                 var images = bannerImagesDto.NewImages;
+                var phoneImages = bannerImagesDto.PhoneImages;
                 var sequenceNumbers = bannerImagesDto.ImageSequenceNumbers;
                 var pageURLs = bannerImagesDto.PageURLs;
                 var buttonTexts = bannerImagesDto.ButtonTexts;
@@ -83,6 +85,7 @@ namespace MinM_API.Services.Implementations
                 for (int i = 0; i < images.Count; i++)
                 {
                     var image = images[i];
+                    var phoneImage = phoneImages[i];
                     var sequenceNumber = sequenceNumbers[i];
                     var PageURL = pageURLs[i];
                     var buttonText = buttonTexts[i];
@@ -90,6 +93,7 @@ namespace MinM_API.Services.Implementations
                     string? imageURL = null;
 
                     imageURL = await photoService.UploadImageAsync(image);
+                    string? phoneImageURL = await photoService.UploadImageAsync(phoneImage);
 
                     if (!string.IsNullOrEmpty(imageURL))
                     {
@@ -98,6 +102,7 @@ namespace MinM_API.Services.Implementations
                             Id = Guid.NewGuid().ToString(),
                             SequenceNumber = sequenceNumber,
                             ImageURL = imageURL,
+                            PhoneImageURL = phoneImageURL,
                             PageURL = PageURL,
                             ButtonText = buttonText,
                             Text = text,
@@ -117,34 +122,83 @@ namespace MinM_API.Services.Implementations
 
         private async Task ChangeImages(AddBannerImagesDto bannerImagesDto)
         {
-            var existingImages = JsonSerializer.Deserialize<List<BannerPhoto>>(bannerImagesDto.ExistingImages, jsonOptions);
+            var existingImages = JsonSerializer.Deserialize<List<BannerPhoto>>(
+                bannerImagesDto.ExistingImages,
+                jsonOptions
+            );
 
-            var existingURLs = existingImages.Where(v => !string.IsNullOrEmpty(v.ImageURL)).Select(v => v.ImageURL).ToList();
+            if (existingImages == null || existingImages.Count == 0)
+                return;
 
-            var imagesToRemove = await context.BannerImages.Where(bi => !existingURLs.Contains(bi.ImageURL)).ToListAsync();
-
-            foreach (var imageToRemove in imagesToRemove)
-            {
-                var publicId = photoService.GetPublicIdFromUrl(imageToRemove.ImageURL);
-                if (!string.IsNullOrEmpty(publicId))
-                    await photoService.DeleteImageAsync(publicId);
-                context.BannerImages.Remove(imageToRemove);
-            }
-
-            var all = context.BannerImages.ToList();
-            context.BannerImages.RemoveRange(all);
+            var bannersInDb = await context.BannerImages.ToListAsync();
 
             foreach (var image in existingImages)
             {
-                context.BannerImages.Add(new BannerImage
+                var banner = bannersInDb
+                    .FirstOrDefault(b => b.SequenceNumber == image.SequenceNumber);
+
+                if (banner == null)
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    SequenceNumber = image.SequenceNumber,
-                    ImageURL = image.ImageURL,
-                    PageURL = image.PageURL,
-                    ButtonText = image.ButtonText,
-                    Text = image.Text
-                });
+                    context.BannerImages.Add(new BannerImage
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        SequenceNumber = image.SequenceNumber,
+                        ImageURL = image.ImageURL,
+                        PhoneImageURL = image.PhoneImageURL,
+                        PageURL = image.PageURL,
+                        ButtonText = image.ButtonText,
+                        Text = image.Text
+                    });
+
+                    continue;
+                }
+
+                // PC IMAGE UPDATE
+                if (banner.ImageURL != image.ImageURL)
+                {
+                    var publicId = photoService.GetPublicIdFromUrl(banner.ImageURL);
+
+                    if (!string.IsNullOrEmpty(publicId))
+                        await photoService.DeleteImageAsync(publicId);
+
+                    banner.ImageURL = image.ImageURL;
+                }
+
+                // PHONE IMAGE UPDATE
+                if (banner.PhoneImageURL != image.PhoneImageURL)
+                {
+                    var publicId = photoService.GetPublicIdFromUrl(banner.PhoneImageURL);
+
+                    if (!string.IsNullOrEmpty(publicId))
+                        await photoService.DeleteImageAsync(publicId);
+
+                    banner.PhoneImageURL = image.PhoneImageURL;
+                }
+
+                // OTHER FIELDS
+                banner.PageURL = image.PageURL;
+                banner.ButtonText = image.ButtonText;
+                banner.Text = image.Text;
+            }
+
+            // DELETE REMOVED BANNERS
+            var sequenceNumbers = existingImages.Select(e => e.SequenceNumber).ToList();
+
+            var bannersToDelete = bannersInDb
+                .Where(b => !sequenceNumbers.Contains(b.SequenceNumber))
+                .ToList();
+
+            foreach (var banner in bannersToDelete)
+            {
+                var pcPublicId = photoService.GetPublicIdFromUrl(banner.ImageURL);
+                if (!string.IsNullOrEmpty(pcPublicId))
+                    await photoService.DeleteImageAsync(pcPublicId);
+
+                var phonePublicId = photoService.GetPublicIdFromUrl(banner.PhoneImageURL);
+                if (!string.IsNullOrEmpty(phonePublicId))
+                    await photoService.DeleteImageAsync(phonePublicId);
+
+                context.BannerImages.Remove(banner);
             }
 
             await context.SaveChangesAsync();
