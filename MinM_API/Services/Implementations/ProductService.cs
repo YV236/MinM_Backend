@@ -55,7 +55,9 @@ namespace MinM_API.Services.Implementations
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = addProductDto.Name,
+                    Brand = addProductDto.Brand,
                     Slug = SlugExtension.GenerateSlug(addProductDto.Name),
+                    ExtraInfo = addProductDto.ExtraInfo,
                     Description = addProductDto.Description,
                     CategoryId = addProductDto.CategoryId,
                     SKU = addProductDto.SKU,
@@ -161,6 +163,9 @@ namespace MinM_API.Services.Implementations
 
                 mapper.UpdateProductToProduct(updateProductDto, product);
                 product.Slug = SlugExtension.GenerateSlug(product.Name);
+
+                product.Brand = updateProductDto.Brand;
+                product.ExtraInfo = updateProductDto.ExtraInfo;
 
                 product.SKUGroup = ExtractGroupFromSKU(updateProductDto.SKU);
                 product.SKUSequence = ExtractSequenceFromSKU(updateProductDto.SKU);
@@ -348,6 +353,42 @@ namespace MinM_API.Services.Implementations
             {
                 logger.LogError(ex, "Fail: Error while retrieving product from database with such variant.");
                 return ResponseFactory.Error(new GetProductDto(), "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<List<GetProductDto>>> GetByBrand(string brand)
+        {
+            try
+            {
+                var productsList = await context.Products
+                    .Include(p => p.Discount)
+                    .Include(p => p.Season)
+                    .Include(p => p.ProductVariants)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.Colors)
+                    .Where(p => p.Brand == brand).ToListAsync();
+
+                foreach (var product in productsList)
+                {
+                    product.ProductVariants = product.ProductVariants
+                        .OrderBy(pv => decimal.Parse(pv.Name, CultureInfo.InvariantCulture))
+                        .ToList();
+
+                    product.ProductImages = product.ProductImages
+                        .OrderBy(pi => pi.SequenceNumber)
+                        .ToList();
+                }
+
+                var getProductsList = productsList.Select(product => mapper.ProductToGetProductDto(product)).ToList();
+
+                logger.LogInformation("Retrieved {Count} products from database", getProductsList.Count);
+
+                return ResponseFactory.Success(getProductsList, "Successful extraction of products");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while retrieving product from database with such variant.");
+                return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
             }
         }
 
