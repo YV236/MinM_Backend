@@ -392,6 +392,25 @@ namespace MinM_API.Services.Implementations
             }
         }
 
+        public async Task<ServiceResponse<List<string>>> GetAllBrands()
+        {
+            try
+            {
+                var brands = await context.Products
+                    .Where(p => !string.IsNullOrEmpty(p.Brand))
+                    .Select(p => p.Brand!)
+                    .Distinct()
+                    .ToListAsync();
+
+                return ResponseFactory.Success(brands, "Brands retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while retrieving product brands.");
+                return ResponseFactory.Error(new List<string>(), "Internal error");
+            }
+        }
+
         public async Task<ServiceResponse<int>> DeleteProduct(string id)
         {
             try
