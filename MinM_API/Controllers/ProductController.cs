@@ -83,7 +83,7 @@ namespace MinM_API.Controllers
         }
 
         [HttpGet]
-        [Route("{brand}")]
+        [Route("byBrand/{brand}")]
         public async Task<ActionResult<ServiceResponse<List<GetProductDto>>>> GetByBrand([FromRoute] string brand)
         {
             var response = await productService.GetByBrand(brand);
