@@ -255,6 +255,10 @@ namespace MinM_API.Data
                     .IsRequired()
                     .HasMaxLength(2048);
 
+                entity.Property(b => b.PhoneImageURL)
+                    .IsRequired()
+                    .HasMaxLength(2048);
+
                 entity.Property(b => b.PageURL)
                     .IsRequired()
                     .HasMaxLength(2048);

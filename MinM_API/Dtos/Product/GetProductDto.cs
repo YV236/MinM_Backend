@@ -7,7 +7,9 @@ namespace MinM_API.Dtos.Product
         public string Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
+        public string? Brand { get; set; }
         public string Description { get; set; } = string.Empty;
+        public string? ExtraInfo { get; set; }
         public List<GetProductVariantDto> ProductVariants { get; set; } = [];
         public string DiscountId { get; set; } = string.Empty;
         public bool? IsSeasonal { get; set; }
