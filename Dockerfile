@@ -11,7 +11,7 @@ RUN dotnet restore ./MinM_API/MinM_API.csproj
 
 COPY MinM_API/ ./MinM_API/
 WORKDIR /src/MinM_API
-RUN dotnet publish -c Release -o /app/publish /p:TreatWarningsAsErrors=false
+RUN dotnet publish -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
