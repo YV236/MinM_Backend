@@ -9,6 +9,7 @@ using MinM_API.Models;
 using MinM_API.Repositories.Interfaces;
 using MinM_API.Services.Interfaces;
 using System.Security.Claims;
+using System.Net;
 
 namespace MinM_API.Services.Implementations
 {
@@ -24,6 +25,12 @@ namespace MinM_API.Services.Implementations
 
             try
             {
+                var itemsResponse = await CreateOrderItems(addOrderDto.OrderItems);
+                if (!itemsResponse.IsSuccessful)
+                {
+                    return ResponseFactory.Error("Fail", itemsResponse.Message, itemsResponse.StatusCode);
+                }
+
                 Models.Address address = null;
 
                 // Визначаємо тип адреси на основі DTO
@@ -97,7 +104,7 @@ namespace MinM_API.Services.Implementations
                     User = getUser,
                     AddressId = address.Id, // Встановлюємо ID адреси
                     Address = address,
-                    OrderItems = await CreateOrderItems(addOrderDto.OrderItems),
+                    OrderItems = itemsResponse.Data!,
                     Status = Status.Created,
                     PaymentMethod = addOrderDto.PaymentMethod,
                     DeliveryMethod = addOrderDto.DeliveryMethod,
@@ -124,6 +131,12 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
+                var itemsResponse = await CreateOrderItems(addOrderDto.OrderItems);
+                if (!itemsResponse.IsSuccessful)
+                {
+                    return ResponseFactory.Error("Fail", itemsResponse.Message, itemsResponse.StatusCode);
+                }
+
                 Address address = null;
 
                 // Пошук існуючої адреси серед всіх типів адрес
@@ -191,15 +204,13 @@ namespace MinM_API.Services.Implementations
                 // Зберігаємо адресу, якщо вона нова
                 await context.SaveChangesAsync();
 
-                var orderItems = await CreateOrderItems(addOrderDto.OrderItems);
-
                 var order = new Order
                 {
                     Id = Guid.NewGuid().ToString(),
                     OrderDate = DateTime.UtcNow,
                     AddressId = address.Id,
                     Address = address,
-                    OrderItems = orderItems,
+                    OrderItems = itemsResponse.Data!,
                     Status = Status.Created,
                     PaymentMethod = addOrderDto.PaymentMethod ?? "Card",
                     DeliveryMethod = addOrderDto.DeliveryMethod ?? "NovaPost",
@@ -690,19 +701,48 @@ namespace MinM_API.Services.Implementations
             return result;
         }
 
-        private async Task<List<OrderItem>> CreateOrderItems(List<OrderItemDto> orderItems)
+        private async Task<ServiceResponse<List<OrderItem>>> CreateOrderItems(List<OrderItemDto> orderItems)
         {
             var result = new List<OrderItem>();
-            var itemToAdd = new OrderItem();
 
             foreach (var item in orderItems)
             {
-                itemToAdd = mapper.OrderItemDtoToOrderItem(item);
+                var itemToAdd = mapper.OrderItemDtoToOrderItem(item);
                 itemToAdd.Id = Guid.NewGuid().ToString();
+
+                if (item.ColorId is not null)
+                {
+                    var productId = await context.ProductVariants
+                        .Where(v => v.Id == item.ItemId)
+                        .Select(v => v.ProductId)
+                        .FirstOrDefaultAsync();
+
+                    if (productId is null)
+                    {
+                        return ResponseFactory.Error<List<OrderItem>>(null,
+                            "Product variant not found", HttpStatusCode.BadRequest);
+                    }
+
+                    var color = await context.Colors.AsNoTracking()
+                        .Where(c => c.Id == item.ColorId && c.Products.Any(p => p.Id == productId))
+                        .Select(c => new { c.Id, c.Name, c.ColorHex })
+                        .FirstOrDefaultAsync();
+
+                    if (color is null)
+                    {
+                        return ResponseFactory.Error<List<OrderItem>>(null,
+                            "Selected color does not exist or does not belong to the product",
+                            HttpStatusCode.BadRequest);
+                    }
+
+                    itemToAdd.ColorId = color.Id;
+                    itemToAdd.ColorName = color.Name;
+                    itemToAdd.ColorHex = color.ColorHex;
+                }
 
                 result.Add(itemToAdd);
             }
-            return result;
+            return ResponseFactory.Success(result);
         }
     }
 }
