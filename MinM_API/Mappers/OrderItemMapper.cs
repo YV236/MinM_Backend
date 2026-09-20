@@ -7,9 +7,14 @@ namespace MinM_API.Mappers
     [Mapper]
     public partial class OrderItemMapper
     {
-        [MapperIgnoreSource(nameof(OrderItem.Id))]
-        [MapperIgnoreSource(nameof(OrderItem.Order))]
-        [MapperIgnoreSource(nameof(OrderItem.Item))]
+        [MapperIgnoreTarget(nameof(OrderItem.Id))]
+        [MapperIgnoreTarget(nameof(OrderItem.OrderId))]
+        [MapperIgnoreTarget(nameof(OrderItem.Order))]
+        [MapperIgnoreTarget(nameof(OrderItem.Item))]
+        [MapperIgnoreSource(nameof(OrderItemDto.ColorName))]
+        [MapperIgnoreSource(nameof(OrderItemDto.ColorHex))]
+        [MapperIgnoreTarget(nameof(OrderItem.ColorName))]
+        [MapperIgnoreTarget(nameof(OrderItem.ColorHex))]
         public partial OrderItem OrderItemDtoToOrderItem(OrderItemDto orderItemDto);
 
 
