@@ -48,22 +48,7 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
-                if (addCategoryDto.ParentCategoryId is not null &&
-                    !await context.Categories.AnyAsync(c => c.Id == addCategoryDto.ParentCategoryId))
-                {
-                    return ResponseFactory.Error(new GetCategoryDto(),
-                        "There is no category to be parent with such id", HttpStatusCode.NotFound);
-                }
-
                 var slug = SlugExtension.GenerateSlug(addCategoryDto.Name);
-                var conflict = await GetSiblingConflictAsync(
-                    addCategoryDto.ParentCategoryId, addCategoryDto.Name, slug);
-
-                if (conflict is not null)
-                {
-                    return CategoryConflict(new GetCategoryDto(), conflict);
-                }
-
                 var category = new Category()
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -105,30 +90,7 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetCategoryDto(), "There is no category with such id", HttpStatusCode.NotFound);
                 }
 
-                if (category.Id == updateCategoryDto.ParentCategoryId)
-                {
-                    logger.LogInformation("Fail: You can't provide same Id as the Parent Id for this category. Id: {CategoryId}",
-                        updateCategoryDto.ParentCategoryId);
-                    return ResponseFactory.Error(new GetCategoryDto(), "You can not provide the same Id as the Parent Id for this category");
-                }
-
-                var parentCategory = await context.Categories.FirstOrDefaultAsync(c => c.Id == updateCategoryDto.ParentCategoryId);
-
-                if (updateCategoryDto.ParentCategoryId != null && parentCategory == null)
-                {
-                    logger.LogInformation("Fail: There is no category with such id. Id: {CategoryId}", category.ParentCategoryId);
-                    return ResponseFactory.Error(new GetCategoryDto(), "There is no category to be parent with such id", HttpStatusCode.NotFound);
-                }
-
                 var slug = SlugExtension.GenerateSlug(updateCategoryDto.Name);
-                var conflict = await GetSiblingConflictAsync(
-                    updateCategoryDto.ParentCategoryId, updateCategoryDto.Name, slug, category.Id);
-
-                if (conflict is not null)
-                {
-                    return CategoryConflict(new GetCategoryDto(), conflict);
-                }
-
                 mapper.UpdateCategoryDtoToCategory(updateCategoryDto, category);
                 category.Slug = slug;
 
@@ -179,23 +141,6 @@ namespace MinM_API.Services.Implementations
                     deleteCategoryDto.Option = DeleteOption.Orphan;
                 }
 
-                if (category.Subcategories!.Count != 0 &&
-                    deleteCategoryDto.Option is DeleteOption.ReassignToParent or DeleteOption.Orphan)
-                {
-                    var targetParentId = deleteCategoryDto.Option == DeleteOption.Orphan
-                        ? null
-                        : category.ParentCategoryId;
-                    var conflict = await GetReassignmentConflictAsync(
-                        category.Subcategories, targetParentId, category.Id);
-
-                    if (conflict is not null)
-                    {
-                        return ResponseFactory.Error(0,
-                            $"Cannot move subcategories because the target level already contains the same {conflict}",
-                            HttpStatusCode.Conflict);
-                    }
-                }
-
                 var publicId = photoService.GetPublicIdFromUrl(category.ImageURL);
                 await photoService.DeleteImageAsync(publicId);
 
@@ -238,49 +183,6 @@ namespace MinM_API.Services.Implementations
                 logger.LogError(ex, "Fail: Error while deleting category. CategoryId: {CategoryId}", deleteCategoryDto.CategoryId);
                 return ResponseFactory.Error(0, "Internal error");
             }
-        }
-
-        private async Task<string?> GetSiblingConflictAsync(
-            string? parentCategoryId, string name, string slug, string? excludedCategoryId = null)
-        {
-            var siblings = context.Categories.Where(c =>
-                c.ParentCategoryId == parentCategoryId && c.Id != excludedCategoryId);
-
-            if (await siblings.AnyAsync(c => c.Name == name))
-            {
-                return "name";
-            }
-
-            return await siblings.AnyAsync(c => c.Slug == slug) ? "slug" : null;
-        }
-
-        private async Task<string?> GetReassignmentConflictAsync(
-            List<Category> children, string? targetParentId, string deletedCategoryId)
-        {
-            if (children.GroupBy(c => c.Name).Any(g => g.Count() > 1))
-            {
-                return "name";
-            }
-
-            if (children.GroupBy(c => c.Slug).Any(g => g.Count() > 1))
-            {
-                return "slug";
-            }
-
-            var childIds = children.Select(c => c.Id).ToList();
-            var childNames = children.Select(c => c.Name).ToList();
-            var childSlugs = children.Select(c => c.Slug).ToList();
-            var targetSiblings = context.Categories.Where(c =>
-                c.ParentCategoryId == targetParentId &&
-                c.Id != deletedCategoryId &&
-                !childIds.Contains(c.Id));
-
-            if (await targetSiblings.AnyAsync(c => childNames.Contains(c.Name)))
-            {
-                return "name";
-            }
-
-            return await targetSiblings.AnyAsync(c => childSlugs.Contains(c.Slug)) ? "slug" : null;
         }
 
         private static ServiceResponse<T> CategoryConflict<T>(T data, string field) =>
