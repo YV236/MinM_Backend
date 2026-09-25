@@ -212,8 +212,28 @@ namespace MinM_API.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Category>()
+                .HasIndex(c => new { c.Name, c.ParentCategoryId })
+                .IsUnique()
+                .HasFilter("\"ParentCategoryId\" IS NOT NULL")
+                .HasDatabaseName("UX_Categories_ParentCategoryId_Name");
+
+            builder.Entity<Category>()
                 .HasIndex(c => c.Name)
-            .IsUnique();
+                .IsUnique()
+                .HasFilter("\"ParentCategoryId\" IS NULL")
+                .HasDatabaseName("UX_Categories_Root_Name");
+
+            builder.Entity<Category>()
+                .HasIndex(c => new { c.Slug, c.ParentCategoryId })
+                .IsUnique()
+                .HasFilter("\"ParentCategoryId\" IS NOT NULL")
+                .HasDatabaseName("UX_Categories_ParentCategoryId_Slug");
+
+            builder.Entity<Category>()
+                .HasIndex(c => c.Slug)
+                .IsUnique()
+                .HasFilter("\"ParentCategoryId\" IS NULL")
+                .HasDatabaseName("UX_Categories_Root_Slug");
 
             builder.Entity<Product>()
                 .HasMany(p => p.Colors)

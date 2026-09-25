@@ -2,7 +2,6 @@
 
 namespace MinM_API.Models
 {
-    [Index(nameof(Slug), IsUnique = true)]
     public class Category
     {
         public string Id { get; set; }
