@@ -234,12 +234,8 @@ using (var scope = app.Services.CreateScope())
     await AdminExtension.SeedAdminAsync(services);
 }
 
-<<<<<<< HEAD
-// app.UseHttpsRedirection();
-=======
 app.UseHttpsRedirection();
 app.UseMiddleware<ValidationExceptionMiddleware>();
->>>>>>> d5c0dacb90dec69106bf146db14c0ccd5df2024a
 app.UseRouting();
 
 app.UseCors("NextJsCorsPolicy");
