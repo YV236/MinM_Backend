@@ -19,6 +19,8 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using MinM_API.Validators;
+using MinM_API.Validators.Category;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,7 +85,8 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+    options.Filters.AddService<DtoValidationFilter>());
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -125,6 +128,11 @@ builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<DtoValidationFilter>();
+builder.Services.AddScoped<CategoryValidationHelper>();
+builder.Services.AddScoped<IDtoValidator, AddCategoryDtoValidator>();
+builder.Services.AddScoped<IDtoValidator, UpdateCategoryDtoValidator>();
+builder.Services.AddScoped<IDtoValidator, DeleteCategoryDtoValidator>();
 
 builder.Services.AddSingleton<ProductMapper>();
 builder.Services.AddSingleton<SeasonMapper>();
@@ -226,7 +234,12 @@ using (var scope = app.Services.CreateScope())
     await AdminExtension.SeedAdminAsync(services);
 }
 
+<<<<<<< HEAD
 // app.UseHttpsRedirection();
+=======
+app.UseHttpsRedirection();
+app.UseMiddleware<ValidationExceptionMiddleware>();
+>>>>>>> d5c0dacb90dec69106bf146db14c0ccd5df2024a
 app.UseRouting();
 
 app.UseCors("NextJsCorsPolicy");

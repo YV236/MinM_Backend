@@ -9,6 +9,7 @@ using MinM_API.Mappers;
 
 using MinM_API.Models;
 using MinM_API.Services.Interfaces;
+using Npgsql;
 using System.Net;
 
 namespace MinM_API.Services.Implementations
@@ -47,11 +48,12 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
+                var slug = SlugExtension.GenerateSlug(addCategoryDto.Name);
                 var category = new Category()
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = addCategoryDto.Name,
-                    Slug = SlugExtension.GenerateSlug(addCategoryDto.Name),
+                    Slug = slug,
                     Description = addCategoryDto.Description,
                     ParentCategoryId = addCategoryDto.ParentCategoryId,
                     ImageURL = await photoService.UploadImageAsync(addCategoryDto.Image)
@@ -63,6 +65,11 @@ namespace MinM_API.Services.Implementations
                 var getCategoryDto = mapper.CategoryToGetCategoryDto(category);
 
                 return ResponseFactory.Success(getCategoryDto, "Category successfully created");
+            }
+            catch (DbUpdateException ex) when (IsCategoryUniquenessViolation(ex))
+            {
+                logger.LogInformation(ex, "Category sibling uniqueness conflict while adding {CategoryName}", addCategoryDto.Name);
+                return CategoryConflict(new GetCategoryDto(), "name or slug");
             }
             catch (Exception ex)
             {
@@ -83,23 +90,9 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(new GetCategoryDto(), "There is no category with such id", HttpStatusCode.NotFound);
                 }
 
-                if (category.Id == updateCategoryDto.ParentCategoryId)
-                {
-                    logger.LogInformation("Fail: You can't provide same Id as the Parent Id for this category. Id: {CategoryId}",
-                        updateCategoryDto.ParentCategoryId);
-                    return ResponseFactory.Error(new GetCategoryDto(), "You can not provide the same Id as the Parent Id for this category");
-                }
-
-                var parentCategory = await context.Categories.FirstOrDefaultAsync(c => c.Id == updateCategoryDto.ParentCategoryId);
-
-                if (updateCategoryDto.ParentCategoryId != null && parentCategory == null)
-                {
-                    logger.LogInformation("Fail: There is no category with such id. Id: {CategoryId}", category.ParentCategoryId);
-                    return ResponseFactory.Error(new GetCategoryDto(), "There is no category to be parent with such id", HttpStatusCode.NotFound);
-                }
-
+                var slug = SlugExtension.GenerateSlug(updateCategoryDto.Name);
                 mapper.UpdateCategoryDtoToCategory(updateCategoryDto, category);
-                category.Slug = SlugExtension.GenerateSlug(updateCategoryDto.Name);
+                category.Slug = slug;
 
                 if (updateCategoryDto.NewImage != null)
                 {
@@ -115,6 +108,11 @@ namespace MinM_API.Services.Implementations
                 var getCategoryDto = mapper.CategoryToGetCategoryDto(category);
 
                 return ResponseFactory.Success(getCategoryDto, "Category successfully updated");
+            }
+            catch (DbUpdateException ex) when (IsCategoryUniquenessViolation(ex))
+            {
+                logger.LogInformation(ex, "Category sibling uniqueness conflict while updating {CategoryId}", updateCategoryDto.Id);
+                return CategoryConflict(new GetCategoryDto(), "name or slug");
             }
             catch (Exception ex)
             {
@@ -175,11 +173,31 @@ namespace MinM_API.Services.Implementations
 
                 return ResponseFactory.Success(1, "Category successfully removed");
             }
+            catch (DbUpdateException ex) when (IsCategoryUniquenessViolation(ex))
+            {
+                logger.LogInformation(ex, "Category sibling uniqueness conflict while deleting {CategoryId}", deleteCategoryDto.CategoryId);
+                return CategoryConflict(0, "name or slug");
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Fail: Error while deleting category. CategoryId: {CategoryId}", deleteCategoryDto.CategoryId);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
+
+        private static ServiceResponse<T> CategoryConflict<T>(T data, string field) =>
+            ResponseFactory.Error(data,
+                $"A category with the same {field} already exists under this parent",
+                HttpStatusCode.Conflict);
+
+        private static bool IsCategoryUniquenessViolation(DbUpdateException exception) =>
+            exception.InnerException is PostgresException
+            {
+                SqlState: PostgresErrorCodes.UniqueViolation,
+                ConstraintName: "UX_Categories_ParentCategoryId_Name" or
+                    "UX_Categories_Root_Name" or
+                    "UX_Categories_ParentCategoryId_Slug" or
+                    "UX_Categories_Root_Slug"
+            };
     }
 }
