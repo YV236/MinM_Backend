@@ -104,7 +104,7 @@ builder.Services.AddRateLimiter(options =>
         return RateLimitPartition.GetFixedWindowLimiter(ipAddress, _ =>
             new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 20,
+                PermitLimit = 40,
                 Window = TimeSpan.FromSeconds(10)
             });
     });
@@ -141,6 +141,8 @@ builder.Services.AddSingleton<CategoryMapper>();
 builder.Services.AddSingleton<DiscountMapper>();
 builder.Services.AddSingleton<CartMapper>();
 builder.Services.AddSingleton<OrderItemMapper>();
+
+// var nextAuthUrl = Environment.GetEnvironmentVariable("NEXTAUTH_URL");
 
 builder.Services.Configure<JsonOptions>(options =>
 {
