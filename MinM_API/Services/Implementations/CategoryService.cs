@@ -44,6 +44,38 @@ namespace MinM_API.Services.Implementations
             }
         }
 
+        public async Task<ServiceResponse<GetCategoryDto>> GetCategoryBySlug(string slugPath)
+        {
+            var slugs = slugPath.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (slugs.Length == 0 || slugs.Any(string.IsNullOrWhiteSpace))
+            {
+                return ResponseFactory.Error(new GetCategoryDto(), "Category path is required", HttpStatusCode.BadRequest);
+            }
+
+            string? parentCategoryId = null;
+            Category? category = null;
+
+            foreach (var slug in slugs)
+            {
+                category = await context.Categories
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c =>
+                        c.Slug == slug && c.ParentCategoryId == parentCategoryId);
+
+                if (category is null)
+                {
+                    return ResponseFactory.Error(new GetCategoryDto(),
+                        "There is no category with such path", HttpStatusCode.NotFound);
+                }
+
+                parentCategoryId = category.Id;
+            }
+
+            return ResponseFactory.Success(
+                mapper.CategoryToGetCategoryDto(category!),
+                "Successful extraction of category by path");
+        }
+
         public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto addCategoryDto)
         {
             try

@@ -49,5 +49,14 @@ namespace MinM_API.Controllers
 
             return StatusCode((int)response.StatusCode, response);
         }
+
+        [HttpGet]
+        [Route("GetBySlug")]
+        public async Task<ActionResult<ServiceResponse<GetCategoryDto>>> GetCategoryBySlug([FromQuery] string slug)
+        {
+            var response = await categoryService.GetCategoryBySlug(slug);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
