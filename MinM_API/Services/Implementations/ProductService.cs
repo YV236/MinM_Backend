@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using Npgsql;
 
 namespace MinM_API.Services.Implementations
 {
@@ -161,6 +162,27 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
+                var variants = JsonSerializer.Deserialize<List<UpdateProductVariantDto>>(
+                    updateProductDto.ProductVariantsJson, jsonOptions);
+                if (variants is null)
+                {
+                    return ResponseFactory.Error(0, "Product variants are required", HttpStatusCode.BadRequest);
+                }
+                var requestedVariantIds = variants
+                    .Where(v => !string.IsNullOrEmpty(v.Id))
+                    .Select(v => v.Id)
+                    .ToHashSet();
+                var removedVariantIds = product.ProductVariants
+                    .Where(v => !requestedVariantIds.Contains(v.Id))
+                    .Select(v => v.Id)
+                    .ToList();
+
+                if (removedVariantIds.Count > 0 && await context.OrderItems
+                    .AnyAsync(oi => removedVariantIds.Contains(oi.ItemId)))
+                {
+                    return ProductHasOrdersConflict();
+                }
+
                 mapper.UpdateProductToProduct(updateProductDto, product);
                 product.Slug = SlugExtension.GenerateSlug(product.Name);
 
@@ -173,8 +195,6 @@ namespace MinM_API.Services.Implementations
                 await UpdateProductImagesAsync(updateProductDto);
 
                 var discount = await context.Discounts.FirstOrDefaultAsync(d => d.Id == product.DiscountId);
-
-                var variants = JsonSerializer.Deserialize<List<UpdateProductVariantDto>>(updateProductDto.ProductVariantsJson, jsonOptions);
 
                 UpdateProductVariants(product, variants, discount);
 
@@ -192,8 +212,13 @@ namespace MinM_API.Services.Implementations
                 logger.LogError(ex, "JSON deserialization error while adding product. Name: {ProductName}", updateProductDto.Name);
                 return ResponseFactory.Error(0, "Invalid JSON format in request data", HttpStatusCode.BadRequest);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (IsOrderItemForeignKeyViolation(ex))
+                {
+                    return ProductHasOrdersConflict();
+                }
+
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
@@ -203,6 +228,7 @@ namespace MinM_API.Services.Implementations
             try
             {
                 var productsList = await context.Products
+                    .Where(p => !p.IsArchived)
                     .Include(p => p.Discount)
                     .Include(p => p.Season)
                     .Include(p => p.ProductVariants)
@@ -239,6 +265,48 @@ namespace MinM_API.Services.Implementations
             catch (Exception ex)
             {
                 logger.LogError(ex, "Fail: Error while to retrieving products from database");
+                return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<List<GetProductDto>>> GetArchivedProducts()
+        {
+            try
+            {
+                var productsList = await context.Products
+                    .Where(p => p.IsArchived)
+                    .Include(p => p.Discount)
+                    .Include(p => p.Season)
+                    .Include(p => p.ProductVariants)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.Colors)
+                    .OrderBy(p => p.SKUGroup)
+                    .ThenBy(p => p.SKUSequence)
+                    .ThenBy(p => p.Name)
+                    .ToListAsync();
+
+                if (productsList.Count == 0)
+                {
+                    return ResponseFactory.Error(new List<GetProductDto>(), "There are no archived products", HttpStatusCode.NotFound);
+                }
+
+                foreach (var product in productsList)
+                {
+                    product.ProductVariants = product.ProductVariants
+                        .OrderBy(pv => decimal.Parse(pv.Name, CultureInfo.InvariantCulture))
+                        .ToList();
+                    product.ProductImages = product.ProductImages
+                        .OrderBy(pi => pi.SequenceNumber)
+                        .ToList();
+                }
+
+                return ResponseFactory.Success(
+                    productsList.Select(mapper.ProductToGetProductDto).ToList(),
+                    "Archived products retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while retrieving archived products");
                 return ResponseFactory.Error(new List<GetProductDto>(), "Internal error");
             }
         }
@@ -366,7 +434,7 @@ namespace MinM_API.Services.Implementations
                     .Include(p => p.ProductVariants)
                     .Include(p => p.ProductImages)
                     .Include(p => p.Colors)
-                    .Where(p => p.Brand == brand).ToListAsync();
+                    .Where(p => !p.IsArchived && p.Brand == brand).ToListAsync();
 
                 foreach (var product in productsList)
                 {
@@ -397,7 +465,7 @@ namespace MinM_API.Services.Implementations
             try
             {
                 var brands = await context.Products
-                    .Where(p => !string.IsNullOrEmpty(p.Brand))
+                    .Where(p => !p.IsArchived && !string.IsNullOrEmpty(p.Brand))
                     .Select(p => p.Brand!)
                     .Distinct()
                     .ToListAsync();
@@ -415,7 +483,9 @@ namespace MinM_API.Services.Implementations
         {
             try
             {
-                var productToDelete = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
+                var productToDelete = await context.Products
+                    .Include(p => p.ProductImages)
+                    .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (productToDelete == null)
                 {
@@ -423,21 +493,85 @@ namespace MinM_API.Services.Implementations
                     return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
                 }
 
-                foreach (var image in productToDelete.ProductImages)
+                if (await ProductHasOrderedVariantsAsync(id))
                 {
-                    var publicId = photoService.GetPublicIdFromUrl(image.FilePath);
-                    await photoService.DeleteImageAsync(publicId);
-                    context.ProductImages.Remove(image);
+                    return ProductHasOrdersConflict();
                 }
 
+                var imagePaths = productToDelete.ProductImages.Select(image => image.FilePath).ToList();
                 context.Products.Remove(productToDelete);
                 await context.SaveChangesAsync();
+
+                foreach (var imagePath in imagePaths)
+                {
+                    try
+                    {
+                        var publicId = photoService.GetPublicIdFromUrl(imagePath);
+                        if (!string.IsNullOrEmpty(publicId))
+                        {
+                            await photoService.DeleteImageAsync(publicId);
+                        }
+                    }
+                    catch (Exception imageException)
+                    {
+                        logger.LogWarning(imageException, "Failed to delete product image {ImagePath} after product deletion", imagePath);
+                    }
+                }
 
                 return ResponseFactory.Success(1, "Product successfully removed");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Fail: Error while deleting {Id} from database", id);
+                if (IsOrderItemForeignKeyViolation(ex))
+                {
+                    return ProductHasOrdersConflict();
+                }
+
+                return ResponseFactory.Error(0, "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<int>> ArchiveProduct(string id)
+        {
+            try
+            {
+                var product = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
+                if (product == null)
+                {
+                    return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
+                }
+
+                product.IsArchived = true;
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success(1, "Product successfully archived");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while archiving product {Id}", id);
+                return ResponseFactory.Error(0, "Internal error");
+            }
+        }
+
+        public async Task<ServiceResponse<int>> RestoreProduct(string id)
+        {
+            try
+            {
+                var product = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
+                if (product == null)
+                {
+                    return ResponseFactory.Error(0, "Product not found", HttpStatusCode.NotFound);
+                }
+
+                product.IsArchived = false;
+                await context.SaveChangesAsync();
+
+                return ResponseFactory.Success(1, "Product successfully restored");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fail: Error while restoring product {Id}", id);
                 return ResponseFactory.Error(0, "Internal error");
             }
         }
@@ -522,7 +656,7 @@ namespace MinM_API.Services.Implementations
             await context.SaveChangesAsync();
         }
 
-        private void UpdateProductVariants(Product product, List<UpdateProductVariantDto>? variants, Discount? discount)
+        private void UpdateProductVariants(Product product, List<UpdateProductVariantDto> variants, Discount? discount)
         {
             var existingVariants = product.ProductVariants.ToList();
             var dtoIds = variants.Where(v => !string.IsNullOrEmpty(v.Id)).Select(v => v.Id).ToList();
@@ -619,6 +753,36 @@ namespace MinM_API.Services.Implementations
             {
                 product.Colors.Add(color);
             }
+        }
+
+        private Task<bool> ProductHasOrderedVariantsAsync(string productId)
+        {
+            return context.OrderItems.AnyAsync(orderItem =>
+                context.ProductVariants.Any(variant =>
+                    variant.Id == orderItem.ItemId && variant.ProductId == productId));
+        }
+
+        private static ServiceResponse<int> ProductHasOrdersConflict()
+        {
+            return ResponseFactory.Error(
+                0,
+                "Товар є в замовленнях. Його можна архівувати",
+                HttpStatusCode.Conflict);
+        }
+
+        private static bool IsOrderItemForeignKeyViolation(Exception exception)
+        {
+            for (var current = exception; current != null; current = current.InnerException)
+            {
+                if (current is PostgresException postgresException &&
+                    postgresException.SqlState == "23503" &&
+                    postgresException.ConstraintName == "FK_OrderItems_ProductVariants_ItemId")
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
