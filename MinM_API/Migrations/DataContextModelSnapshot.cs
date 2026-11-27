@@ -516,6 +516,9 @@ namespace MinM_API.Migrations
                     b.Property<string>("ExtraInfo")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDiscounted")
                         .HasColumnType("boolean");
 
@@ -985,7 +988,7 @@ namespace MinM_API.Migrations
                     b.HasOne("MinM_API.Models.ProductVariant", "Item")
                         .WithMany()
                         .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("MinM_API.Models.Order", "Order")
