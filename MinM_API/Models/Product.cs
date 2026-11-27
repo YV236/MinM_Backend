@@ -17,6 +17,7 @@ namespace MinM_API.Models
         public string? ExtraInfo { get; set; }
         public DateTime DateOfCreation { get; set; }
         public bool IsNew { get; set; }
+        public bool IsArchived { get; set; } = false;
         public virtual List<ProductVariant> ProductVariants { get; set; } = [];
         public string? DiscountId { get; set; }
         public virtual Discount? Discount { get; set; }

@@ -15,6 +15,7 @@ namespace MinM_API.Dtos.Product
         public bool? IsSeasonal { get; set; }
         public bool? IsDiscounted { get; set; }
         public bool? IsNew { get; set; }
+        public bool IsArchived { get; set; }
         public string CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public string SKU { get; set; } = string.Empty; // Product article

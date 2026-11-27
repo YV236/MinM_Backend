@@ -151,7 +151,7 @@ namespace MinM_API.Data
                 .HasOne(oi => oi.Item)
                 .WithMany()
                 .HasForeignKey(oi => oi.ItemId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<WishlistItem>()
                 .HasOne(w => w.Product)

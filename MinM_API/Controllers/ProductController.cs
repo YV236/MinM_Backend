@@ -46,6 +46,36 @@ namespace MinM_API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+        [HttpPut]
+        [Route("Archive")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<int>>> ArchiveProduct(string id)
+        {
+            var response = await productService.ArchiveProduct(id);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpPut]
+        [Route("Restore")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<int>>> RestoreProduct(string id)
+        {
+            var response = await productService.RestoreProduct(id);
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpGet]
+        [Route("Archived")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = "MyTokenScheme")]
+        public async Task<ActionResult<ServiceResponse<List<GetProductDto>>>> GetArchivedProducts()
+        {
+            var response = await productService.GetArchivedProducts();
+
+            return StatusCode((int)response.StatusCode, response);
+        }
+
         [HttpGet]
         [Route("GetAll")]
         public async Task<ActionResult<ServiceResponse<List<GetProductDto>>>> GetAllProducts()

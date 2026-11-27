@@ -8,10 +8,13 @@ namespace MinM_API.Services.Interfaces
         public Task<ServiceResponse<string>> AddProduct(AddProductDto addProductDto);
         public Task<ServiceResponse<int>> UpdateProduct(UpdateProductDto updateProductDto);
         public Task<ServiceResponse<List<GetProductDto>>> GetAllProducts();
+        public Task<ServiceResponse<List<GetProductDto>>> GetArchivedProducts();
         public Task<ServiceResponse<GetProductDto>> GetProductById(string id);
         public Task<ServiceResponse<GetProductDto>> GetProductBySlug(string slug);
         public Task<ServiceResponse<List<GetProductDto>>> GetByBrand(string brand);
         public Task<ServiceResponse<int>> DeleteProduct(string id);
+        public Task<ServiceResponse<int>> ArchiveProduct(string id);
+        public Task<ServiceResponse<int>> RestoreProduct(string id);
         public Task<ServiceResponse<GetProductDto>> GetByVariantId(string variantId);
         public Task<ServiceResponse<List<string>>> GetAllBrands();
     }
