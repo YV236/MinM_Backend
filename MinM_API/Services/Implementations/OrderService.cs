@@ -710,27 +710,32 @@ namespace MinM_API.Services.Implementations
                 var itemToAdd = mapper.OrderItemDtoToOrderItem(item);
                 itemToAdd.Id = Guid.NewGuid().ToString();
 
+                var variant = await context.ProductVariants
+                    .Include(v => v.Product)
+                    .FirstOrDefaultAsync(v => v.Id == item.ItemId);
+
+                if (variant is null)
+                {
+                    return ResponseFactory.Error<List<OrderItem>>(default!,
+                        "Product variant not found", HttpStatusCode.BadRequest);
+                }
+
+                if (variant.Product.IsArchived)
+                {
+                    return ResponseFactory.Error<List<OrderItem>>(default!,
+                        "Archived products cannot be ordered", HttpStatusCode.Conflict);
+                }
+
                 if (item.ColorId is not null)
                 {
-                    var productId = await context.ProductVariants
-                        .Where(v => v.Id == item.ItemId)
-                        .Select(v => v.ProductId)
-                        .FirstOrDefaultAsync();
-
-                    if (productId is null)
-                    {
-                        return ResponseFactory.Error<List<OrderItem>>(null,
-                            "Product variant not found", HttpStatusCode.BadRequest);
-                    }
-
                     var color = await context.Colors.AsNoTracking()
-                        .Where(c => c.Id == item.ColorId && c.Products.Any(p => p.Id == productId))
+                        .Where(c => c.Id == item.ColorId && c.Products.Any(p => p.Id == variant.ProductId))
                         .Select(c => new { c.Id, c.Name, c.ColorHex })
                         .FirstOrDefaultAsync();
 
                     if (color is null)
                     {
-                        return ResponseFactory.Error<List<OrderItem>>(null,
+                        return ResponseFactory.Error<List<OrderItem>>(default!,
                             "Selected color does not exist or does not belong to the product",
                             HttpStatusCode.BadRequest);
                     }
